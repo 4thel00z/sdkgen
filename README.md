@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/mtahrioui/sdkgen/master/logo.png" alt="SDKGen Logo" width="500" />
+<img src="https://raw.githubusercontent.com/4thel00z/sdkgen/master/logo.png" alt="SDKGen Logo" width="500" />
 
 # SDKGen
 
@@ -41,7 +41,7 @@ pip install sdkgen
 uv pip install sdkgen
 
 # For development
-git clone https://github.com/yourusername/sdkgen
+git clone https://github.com/4thel00z/sdkgen
 cd sdkgen
 uv install
 ```
@@ -153,18 +153,18 @@ user: User = await client.v1.users.create(**user_data)
 
 ### Supported OpenAPI Features
 
-✅ $ref resolution (local and remote with caching)
-✅ Schema composition (allOf, oneOf, anyOf)
-✅ Discriminators for polymorphic types
-✅ Path, query, header, cookie parameters
-✅ Request bodies (JSON, form-data, multipart, binary)
-✅ Multiple response types
-✅ Authentication schemes (Bearer, API Key, OAuth2)
-✅ Tags for resource grouping
-✅ API versioning namespaces (v1, beta)
-✅ Enums (string and integer)
-✅ Nested resources
-✅ Pagination patterns
+- ✅ $ref resolution (local and remote with caching)
+- ✅ Schema composition (allOf, oneOf, anyOf)
+- ✅ Discriminators for polymorphic types
+- ✅ Path, query, header, cookie parameters
+- ✅ Request bodies (JSON, form-data, multipart, binary)
+- ✅ Multiple response types
+- ✅ Authentication schemes (Bearer, API Key, OAuth2)
+- ✅ Tags for resource grouping
+- ✅ API versioning namespaces (v1, beta)
+- ✅ Enums (string and integer)
+- ✅ Nested resources
+- ✅ Pagination patterns
 
 ### Method Naming Intelligence
 
@@ -248,6 +248,6 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 **Built with ❤️ for the developer community**
 
-[GitHub](https://github.com/yourusername/sdkgen) • [Documentation](docs/) • [Issues](https://github.com/yourusername/sdkgen/issues)
+[GitHub](https://github.com/4thel00z/sdkgen) • [Documentation](docs/) • [Issues](https://github.com/4thel00z/sdkgen/issues)
 
 </div>
