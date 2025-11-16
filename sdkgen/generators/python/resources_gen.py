@@ -114,6 +114,11 @@ class PythonResourcesGenerator:
         if not operation.body_params:
             return []
 
+        # Special case: single array body parameter should be sent directly (not wrapped)
+        if len(operation.body_params) == 1 and operation.body_params[0].type.kind == "array":
+            param = operation.body_params[0]
+            return [f"        payload = {param.python_name}  # Send array directly"]
+
         required_body = [p for p in operation.body_params if p.required]
         optional_body = [p for p in operation.body_params if not p.required]
 
