@@ -37,12 +37,16 @@ class NestedDetector:
 
             # Check operation ID pattern
             operation_id = operation.get("operationId", "")
-            if operation_id:
-                nested_name = self.extract_nested_from_operation_id(operation_id)
-                if nested_name:
-                    if nested_name not in nested:
-                        nested[nested_name] = []
-                    nested[nested_name].append((path, method, operation))
+            if not operation_id:
+                continue
+
+            nested_name = self.extract_nested_from_operation_id(operation_id)
+            if not nested_name:
+                continue
+
+            if nested_name not in nested:
+                nested[nested_name] = []
+            nested[nested_name].append((path, method, operation))
 
         return nested
 
@@ -72,8 +76,19 @@ class NestedDetector:
 
         # Ignore if first part is an action verb
         action_verbs = {
-            "get", "list", "create", "update", "delete", "patch", "post", "put",
-            "upload", "download", "fetch", "search", "find",
+            "get",
+            "list",
+            "create",
+            "update",
+            "delete",
+            "patch",
+            "post",
+            "put",
+            "upload",
+            "download",
+            "fetch",
+            "search",
+            "find",
         }
         if parts[0].lower() in action_verbs:
             return None
@@ -111,4 +126,3 @@ class NestedDetector:
         """
         # Create nested resource if we have at least 2 operations
         return operations_count >= 2
-

@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import httpx
+import yaml
 
 
 class HTTPCache:
@@ -67,8 +68,6 @@ class HTTPCache:
             if "json" in content_type:
                 content = response.json()
             elif "yaml" in content_type or url.endswith((".yaml", ".yml")):
-                import yaml
-
                 content = yaml.safe_load(response.text)
             else:
                 content = response.json()
@@ -94,4 +93,3 @@ class HTTPCache:
         cache_path = self.get_cache_path(url)
         if cache_path.exists():
             cache_path.unlink()
-

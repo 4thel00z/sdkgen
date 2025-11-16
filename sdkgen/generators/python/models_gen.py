@@ -80,10 +80,14 @@ class PythonModelsGenerator:
 
         for prop in model.properties:
             # Determine field name based on model's field_naming
-            base_field_name = prop.python_name if model.field_naming == "snake_case" else prop.api_name
-            
+            base_field_name = (
+                prop.python_name if model.field_naming == "snake_case" else prop.api_name
+            )
+
             # Sanitize Python keywords by appending underscore
-            field_name = f"{base_field_name}_" if keyword.iskeyword(base_field_name) else base_field_name
+            field_name = (
+                f"{base_field_name}_" if keyword.iskeyword(base_field_name) else base_field_name
+            )
 
             # Generate type hint
             type_hint = self.type_mapper.get_python_type_hint(prop.type)
@@ -101,5 +105,3 @@ class PythonModelsGenerator:
             lines.append(f"    {field_name}: {type_hint}{comment}")
 
         return lines
-
-

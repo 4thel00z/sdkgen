@@ -25,12 +25,9 @@ class PythonResourcesGenerator:
         Returns:
             Python source code
         """
-        return "\n".join([
-            *self.generate_imports(package_name),
-            "",
-            "",
-            *self.generate_resource_class(resource),
-        ])
+        return "\n".join(
+            [*self.generate_imports(package_name), "", "", *self.generate_resource_class(resource)]
+        )
 
     def generate_imports(self, package_name: str) -> list[str]:
         """Generate import statements."""
@@ -68,7 +65,7 @@ class PythonResourcesGenerator:
         """Generate an operation method."""
         # Method signature with proper parameters
         params_str = self.build_parameters(operation)
-        
+
         # Determine return type
         return_type = self.get_return_type(operation)
 
@@ -86,8 +83,10 @@ class PythonResourcesGenerator:
 
         # Determine request method based on content type
         if operation.return_format == "multipart":
-            return self.generate_multipart_operation(operation, params_str, return_type, desc, path_with_params)
-        
+            return self.generate_multipart_operation(
+                operation, params_str, return_type, desc, path_with_params
+            )
+
         request_method = "request_raw" if operation.return_format == "binary" else "request"
 
         return [
@@ -95,26 +94,22 @@ class PythonResourcesGenerator:
             f'        """{desc}"""',
             *params_dict_lines,
             *payload_lines,
-            f'        return await self.client.{request_method}(',
+            f"        return await self.client.{request_method}(",
             f'            "{operation.method}",',
-            f'            {path_with_params},',
+            f"            {path_with_params},",
+            *(["            params=params,"] if operation.query_params else []),
             *(
-                ['            params=params,']
-                if operation.query_params
-                else []
-            ),
-            *(
-                ['            json=payload,']
+                ["            json=payload,"]
                 if operation.body_params or operation.use_unpack_pattern
                 else []
             ),
-            '        )',
+            "        )",
         ]
 
     def build_request_payload(self, operation: Operation) -> list[str]:
         """Build request payload from body params."""
         if operation.use_unpack_pattern:
-            return ['        payload = data  # Using Unpack pattern']
+            return ["        payload = data  # Using Unpack pattern"]
 
         if not operation.body_params:
             return []
@@ -124,9 +119,15 @@ class PythonResourcesGenerator:
 
         return [
             "        payload = {",
-            *['            "' + p.api_name + '": ' + p.python_name + ',' for p in required_body],
+            *['            "' + p.api_name + '": ' + p.python_name + "," for p in required_body],
             *[
-                '            **({} if not ' + p.python_name + ' else {"' + p.api_name + '": ' + p.python_name + '}),'
+                "            **({} if not "
+                + p.python_name
+                + ' else {"'
+                + p.api_name
+                + '": '
+                + p.python_name
+                + "}),"
                 for p in optional_body
             ],
             "        }",
@@ -146,7 +147,10 @@ class PythonResourcesGenerator:
             *(
                 [
                     "        files = {",
-                    *['            "' + p.api_name + '": ' + p.python_name + ',' for p in file_params],
+                    *[
+                        '            "' + p.api_name + '": ' + p.python_name + ","
+                        for p in file_params
+                    ],
                     "        }",
                 ]
                 if file_params
@@ -155,9 +159,19 @@ class PythonResourcesGenerator:
             *(
                 [
                     "        data = {",
-                    *['            "' + p.api_name + '": ' + p.python_name + ',' for p in data_params if p.required],
                     *[
-                        '            **({} if not ' + p.python_name + ' else {"' + p.api_name + '": ' + p.python_name + '}),'
+                        '            "' + p.api_name + '": ' + p.python_name + ","
+                        for p in data_params
+                        if p.required
+                    ],
+                    *[
+                        "            **({} if not "
+                        + p.python_name
+                        + ' else {"'
+                        + p.api_name
+                        + '": '
+                        + p.python_name
+                        + "}),"
                         for p in data_params
                         if not p.required
                     ],
@@ -166,20 +180,12 @@ class PythonResourcesGenerator:
                 if data_params
                 else []
             ),
-            '        return await self.client.request_multipart(',
+            "        return await self.client.request_multipart(",
             f'            "{operation.method}",',
-            f'            {path_str},',
-            *(
-                ['            files=files,']
-                if file_params
-                else []
-            ),
-            *(
-                ['            data=data,']
-                if data_params
-                else []
-            ),
-            '        )',
+            f"            {path_str},",
+            *(["            files=files,"] if file_params else []),
+            *(["            data=data,"] if data_params else []),
+            "        )",
         ]
 
     def build_query_params_dict(self, query_params: list) -> list[str]:
@@ -194,19 +200,30 @@ class PythonResourcesGenerator:
         if not optional_params:
             # All required - simple dict
             items = ['"' + p.api_name + '": ' + p.python_name for p in required_params]
-            return ['        params = {' + ", ".join(items) + '}']
+            return ["        params = {" + ", ".join(items) + "}"]
 
         # Build pharia-style params dict with **({} if not x else {"key": x}) pattern
         dict_lines = ["        params = {"]
-        
+
         # Add required params
-        for p in required_params:
-            dict_lines.append('            "' + p.api_name + '": ' + p.python_name + ',')
-        
+        dict_lines.extend(
+            ['            "' + p.api_name + '": ' + p.python_name + "," for p in required_params]
+        )
+
         # Add optional params - pharia pattern: **({} if not value else {"key": value}),
-        for p in optional_params:
-            dict_lines.append('            **({} if not ' + p.python_name + ' else {"' + p.api_name + '": ' + p.python_name + '}),')
-        
+        dict_lines.extend(
+            [
+                "            **({} if not "
+                + p.python_name
+                + ' else {"'
+                + p.api_name
+                + '": '
+                + p.python_name
+                + "}),"
+                for p in optional_params
+            ]
+        )
+
         dict_lines.append("        }")
 
         return dict_lines
@@ -242,20 +259,17 @@ class PythonResourcesGenerator:
     def build_parameters(self, operation: Operation) -> str:
         """Build parameter string for method signature."""
         # CRITICAL: Required params MUST come before optional params in Python!
-        
+
         # Separate required and optional for BOTH body and query params
         required_body = [p for p in operation.body_params if p.required and p.type]
         optional_body = [p for p in operation.body_params if not p.required and p.type]
         required_query = [qp for qp in operation.query_params if qp.required and qp.type]
         optional_query = [qp for qp in operation.query_params if not qp.required and qp.type]
-        
+
         params_list = [
             "self",
             # Path params (always required)
-            *[
-                path_param.python_name + ": str"
-                for path_param in operation.path_params
-            ],
+            *[path_param.python_name + ": str" for path_param in operation.path_params],
             # Required body params
             *[
                 p.python_name + ": " + (self.type_mapper.get_python_type_hint(p.type) or "Any")
@@ -268,12 +282,18 @@ class PythonResourcesGenerator:
             ],
             # Optional body params
             *[
-                p.python_name + ": " + (self.type_mapper.get_python_type_hint(p.type) or "Any") + " | None = None"
+                p.python_name
+                + ": "
+                + (self.type_mapper.get_python_type_hint(p.type) or "Any")
+                + " | None = None"
                 for p in optional_body
             ],
             # Optional query params (with defaults)
             *[
-                qp.python_name + ": " + (self.type_mapper.get_python_type_hint(qp.type) or "Any") + " | None = None"
+                qp.python_name
+                + ": "
+                + (self.type_mapper.get_python_type_hint(qp.type) or "Any")
+                + " | None = None"
                 for qp in optional_query
             ],
             # Request body (if using unpack pattern for model refs)
@@ -281,4 +301,3 @@ class PythonResourcesGenerator:
         ]
 
         return ", ".join(params_list)
-

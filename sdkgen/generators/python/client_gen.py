@@ -22,12 +22,14 @@ class PythonClientGenerator:
         Returns:
             Python source code
         """
-        return "\n".join([
-            *self.generate_imports(namespaces, package_name),
-            "",
-            "",
-            *self.generate_client_class(client, namespaces),
-        ])
+        return "\n".join(
+            [
+                *self.generate_imports(namespaces, package_name),
+                "",
+                "",
+                *self.generate_client_class(client, namespaces),
+            ]
+        )
 
     def generate_imports(self, namespaces: list[Namespace], package_name: str) -> list[str]:
         """Generate import statements."""
@@ -44,8 +46,12 @@ class PythonClientGenerator:
         ]
 
         # Import namespace classes
-        for ns in namespaces:
-            imports.append(f"from {package_name}.resources.{ns.name} import {ns.name.capitalize()}")
+        imports.extend(
+            [
+                f"from {package_name}.resources.{ns.name} import {ns.name.capitalize()}"
+                for ns in namespaces
+            ]
+        )
 
         return imports
 
@@ -60,8 +66,7 @@ class PythonClientGenerator:
         lines.append("")
         lines.append("    Configuration is read from environment variables by default:")
 
-        for env_var in client.env_vars:
-            lines.append(f"    - {env_var.name}: {env_var.maps_to}")
+        lines.extend([f"    - {env_var.name}: {env_var.maps_to}" for env_var in client.env_vars])
 
         lines.append('    """')
         lines.append("")
@@ -135,7 +140,7 @@ class PythonClientGenerator:
         """Generate with_options method."""
         lines = [
             "    def with_options(",
-            "        self, api_key: str = \"\", timeout: float = 0.0, headers: dict[str, str] | None = None",
+            '        self, api_key: str = "", timeout: float = 0.0, headers: dict[str, str] | None = None',
             '    ) -> "Client":',
             '        """Create a new client with updated options."""',
             "        return Client(",
@@ -247,4 +252,3 @@ class PythonClientGenerator:
             "",
             "            return response.json()",
         ]
-

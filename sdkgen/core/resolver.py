@@ -79,9 +79,7 @@ class ReferenceResolver:
             # Recursively resolve nested objects
             result = {}
             for key, value in node.items():
-                result[key] = await self.resolve_node(
-                    value, root_spec, f"{current_path}/{key}"
-                )
+                result[key] = await self.resolve_node(value, root_spec, f"{current_path}/{key}")
             return result
 
         if isinstance(node, list):
@@ -147,12 +145,12 @@ class ReferenceResolver:
 
         for part in parts:
             # Unescape JSON pointer special characters
-            part = part.replace("~1", "/").replace("~0", "~")
+            unescaped_part = part.replace("~1", "/").replace("~0", "~")
 
             if isinstance(current, dict):
-                current = current[part]
+                current = current[unescaped_part]
             elif isinstance(current, list):
-                current = current[int(part)]
+                current = current[int(unescaped_part)]
             else:
                 msg = f"Invalid reference path: {path}"
                 raise ValueError(msg)
@@ -175,10 +173,7 @@ class ReferenceResolver:
             return await self.cache.fetch(file_ref)
 
         # Local file
-        if Path(file_ref).is_absolute():
-            file_path = Path(file_ref)
-        else:
-            file_path = self.base_path / file_ref
+        file_path = Path(file_ref) if Path(file_ref).is_absolute() else self.base_path / file_ref
 
         if not file_path.exists():
             msg = f"External spec not found: {file_path}"
@@ -213,4 +208,3 @@ class ReferenceResolver:
 
         visit(spec)
         return list(set(refs))
-

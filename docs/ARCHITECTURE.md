@@ -89,7 +89,7 @@ Generated SDK Code
 
 ### Matches pharia_data_sdk:
 - Client as dataclass
-- Resources as dataclasses  
+- Resources as dataclasses
 - TypedDict models (not Pydantic)
 - snake_case Python API, camelCase HTTP API
 - Converter functions for case conversion
@@ -147,4 +147,3 @@ my_sdk/
 - pytest + pytest-asyncio: Testing
 - ruff: Linting & formatting
 - mypy: Type checking
-

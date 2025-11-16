@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
-import httpx
 import yaml
 
 from sdkgen.core.resolver import ReferenceResolver
@@ -205,4 +204,3 @@ class OpenAPIParser:
         if servers and len(servers) > 0:
             return servers[0].get("url", "")
         return ""
-

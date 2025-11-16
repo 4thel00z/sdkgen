@@ -64,10 +64,8 @@ class EndpointAnalyzer:
         resource_parts = [
             p
             for p in parts
-            if not p.startswith("{")
-            and not p.startswith("v")
-            or not p[1:].isdigit()
-            and p not in ("api", "beta", "alpha")
+            if (not p.startswith("{") and not p.startswith("v"))
+            or (not p[1:].isdigit() and p not in ("api", "beta", "alpha"))
         ]
 
         if resource_parts:
@@ -163,66 +161,140 @@ class EndpointAnalyzer:
 
         return False, None
 
-    def infer_operation_name(self, method: str, path: str, operation_id: str | None) -> str:
+    def response_is_array(self, responses: dict[str, Any]) -> bool:
+        """Check if primary response is an array."""
+        for status in ["200", "201"]:
+            response = responses.get(status)
+            if not response:
+                continue
+            schema = response.get("content", {}).get("application/json", {}).get("schema")
+            if schema:
+                return schema.get("type") == "array"
+        return False
+
+    def clean_operation_id(self, operation_id: str) -> str:
+        """Extract method name from operationId (FastAPI pattern)."""
+        if "_api_" in operation_id:
+            parts = operation_id.split("_api_")[0].split("_")
+            if parts and parts[-1] in ("v1", "v2", "beta"):
+                parts = parts[:-1]
+            return "_".join(parts)
+        return operation_id
+
+    def infer_operation_name(
+        self, method: str, path: str, operation_id: str | None, responses: dict[str, Any]
+    ) -> str:
         """
-        Infer operation method name from HTTP method and path.
+        Infer operation method name using 3-priority system.
+
+        Priority 1: Clean operationId
+        Priority 2: RPC-style actions (sub-resource actions)
+        Priority 3: HTTP method + response schema
 
         Args:
             method: HTTP method
             path: API path
             operation_id: Operation ID from spec
+            responses: Response schemas
 
         Returns:
             Method name in snake_case
         """
         # Extract path parts (excluding params)
         path_parts = [p for p in path.strip("/").split("/") if not p.startswith("{")]
+        has_path_param = "{" in path
 
-        # Check for sub-resource actions (e.g., /files/{id}/download)
+        # PRIORITY 1: Clean operationId
+        if operation_id:
+            cleaned = self.clean_operation_id(operation_id)
+            # If cleaned operationId is a simple verb, use it
+            if cleaned in (
+                "create",
+                "list",
+                "get",
+                "update",
+                "delete",
+                "download",
+                "upload",
+                "export",
+                "import",
+            ):
+                return cleaned
+
+        # PRIORITY 2: RPC-style actions (expanded ACTION_WORDS)
         if len(path_parts) > 1:
             last_part = path_parts[-1]
             action_words = {
+                # File operations
                 "download",
                 "upload",
+                "export",
+                "import",
+                # State changes
                 "activate",
                 "deactivate",
-                "cancel",
+                "enable",
+                "disable",
+                "publish",
+                "unpublish",
+                "archive",
+                "unarchive",
+                # Workflow
                 "approve",
                 "reject",
-                "publish",
-                "archive",
+                "cancel",
+                "complete",
+                "submit",
+                "confirm",
+                "verify",
+                "validate",
+                # Execution
+                "execute",
+                "trigger",
+                "run",
+                "start",
+                "stop",
+                "pause",
+                "resume",
+                "retry",
+                "restart",
+                # Data operations
+                "refresh",
+                "sync",
+                "clone",
+                "duplicate",
+                "copy",
+                "resend",
+                "reprocess",
+                # Utility
                 "summary",
                 "status",
+                "health",
                 "me",
+                "current",
             }
             if last_part in action_words:
                 return last_part.lower()
 
-        # Standard CRUD operations
-        has_path_param = "{" in path
+        # PRIORITY 3: HTTP method + response schema
+        if method == "GET":
+            if not has_path_param:
+                # GET without params: check if array response
+                if self.response_is_array(responses):
+                    return "list"
+                # Otherwise, use path-based name for utility endpoints
+                if path_parts:
+                    return path_parts[-1].lower()
+                return "get"
+            else:
+                # GET with params: always use get
+                return "get"
+        elif method == "POST":
+            return "create"
+        elif method in ("PUT", "PATCH"):
+            return "update"
+        elif method == "DELETE":
+            return "delete"
 
-        method_mapping = {
-            ("GET", False): "list",
-            ("GET", True): "get",
-            ("POST", False): "create",
-            ("POST", True): "create",
-            ("PUT", True): "update",
-            ("PUT", False): "update",
-            ("PATCH", True): "update",
-            ("PATCH", False): "update",
-            ("DELETE", True): "delete",
-            ("DELETE", False): "delete",
-        }
-
-        standard_name = method_mapping.get((method, has_path_param))
-
-        # Use standard name unless it might conflict
-        # For single-purpose endpoints (health, status), use path-based name
-        if standard_name and standard_name in ("list", "get", "create", "update", "delete"):
-            return standard_name
-
-        # For utility endpoints without params, use last path part
-        if not has_path_param and len(path_parts) >= 1:
-            return path_parts[-1].lower()
-
+        # Fallback
         return method.lower()

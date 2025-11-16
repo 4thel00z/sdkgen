@@ -3,6 +3,9 @@
 import keyword
 import re
 
+from sdkgen.utils.case_converter import to_pascal_case
+from sdkgen.utils.case_converter import to_snake_case
+
 
 PYTHON_KEYWORDS = set(keyword.kwlist)
 
@@ -87,8 +90,6 @@ def sanitize_class_name(name: str) -> str:
     Returns:
         Valid Python class name in PascalCase
     """
-    from sdkgen.utils.case_converter import to_pascal_case
-
     # First sanitize as identifier
     sanitized = sanitize_python_name(name, suffix="Class")
 
@@ -106,11 +107,8 @@ def sanitize_enum_member_name(name: str) -> str:
     Returns:
         Valid Python enum member name in SCREAMING_SNAKE_CASE
     """
-    from sdkgen.utils.case_converter import to_snake_case
-
     # First sanitize as identifier
     sanitized = sanitize_python_name(name, suffix="VALUE")
 
     # Convert to SCREAMING_SNAKE_CASE
     return to_snake_case(sanitized).upper()
-

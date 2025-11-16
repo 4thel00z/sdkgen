@@ -68,6 +68,7 @@ select = [
 
 ignore = [
     "E501",    # line too long (handled by formatter)
+    "PLR0911", # too many returns - decision trees are acceptable
     "PLR0913", # too many arguments
     "PLR2004", # magic values
     "PLR0912", # too many branches

@@ -11,7 +11,9 @@ from sdkgen.utils.case_converter import detect_naming_convention
 class NamingAnalyzer:
     """Analyzes naming conventions in OpenAPI specs."""
 
-    def detect_field_naming(self, schema: dict[str, Any]) -> Literal["snake_case", "camelCase", "original"]:
+    def detect_field_naming(
+        self, schema: dict[str, Any]
+    ) -> Literal["snake_case", "camelCase", "original"]:
         """
         Detect field naming convention from schema properties.
 
@@ -29,12 +31,7 @@ class NamingAnalyzer:
         field_names = list(properties.keys())[:10]
 
         # Count conventions
-        counts = {
-            "snake_case": 0,
-            "camelCase": 0,
-            "PascalCase": 0,
-            "SCREAMING_SNAKE_CASE": 0,
-        }
+        counts = {"snake_case": 0, "camelCase": 0, "PascalCase": 0, "SCREAMING_SNAKE_CASE": 0}
 
         for name in field_names:
             convention = detect_naming_convention(name)
@@ -49,7 +46,9 @@ class NamingAnalyzer:
 
         return "original"
 
-    def detect_parameter_naming(self, parameters: list[dict[str, Any]]) -> Literal["snake_case", "camelCase", "original"]:
+    def detect_parameter_naming(
+        self, parameters: list[dict[str, Any]]
+    ) -> Literal["snake_case", "camelCase", "original"]:
         """
         Detect parameter naming convention.
 
@@ -123,7 +122,7 @@ class NamingAnalyzer:
         # Analyze schemas
         schemas = spec.get("components", {}).get("schemas", {})
         if schemas:
-            sample_schema = next(iter(schemas.values()), {})
+            sample_schema: dict[str, Any] = next(iter(schemas.values()), {})
             response_naming = self.detect_field_naming(sample_schema)
             results["response_naming"] = response_naming
 
@@ -140,4 +139,3 @@ class NamingAnalyzer:
             results["parameter_naming"] = param_naming
 
         return results
-

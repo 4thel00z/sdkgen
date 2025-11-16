@@ -26,9 +26,8 @@ class PythonNamespaceGenerator:
         namespace_resources = [
             resource
             for resource in project.resources
-            if resource.namespace == namespace.name or (
-                not resource.namespace and namespace.name == "v1"
-            )
+            if resource.namespace == namespace.name
+            or (not resource.namespace and namespace.name == "v1")
         ]
 
         # Generate imports
@@ -49,7 +48,7 @@ class PythonNamespaceGenerator:
 
         # Generate namespace class - openapi pattern with property accessors
         class_name = namespace.name.capitalize()
-        
+
         class_lines = [
             "@dataclass",
             f"class {class_name}:",
@@ -70,10 +69,4 @@ class PythonNamespaceGenerator:
             ],
         ]
 
-        return "\n".join([
-            *import_lines,
-            "",
-            "",
-            *class_lines,
-        ])
-
+        return "\n".join([*import_lines, "", "", *class_lines])

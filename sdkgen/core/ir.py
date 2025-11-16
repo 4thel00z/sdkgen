@@ -69,20 +69,13 @@ class IRType:
     """Type representation in IR."""
 
     kind: Literal[
-        "primitive",
-        "array",
-        "object",
-        "model_ref",
-        "enum_ref",
-        "union",
-        "any",
-        "literal",
+        "primitive", "array", "object", "model_ref", "enum_ref", "union", "any", "literal"
     ]
-    primitive: Literal["string", "integer", "number", "boolean"] | None = None
-    item_type: "IRType | None" = None
-    properties: list["Property"] | None = None
+    primitive: Literal["string", "integer", "number", "boolean", "bytes"] | None = None
+    item_type: IRType | None = None
+    properties: list[Property] | None = None
     ref_name: str | None = None
-    union_types: list["IRType"] | None = None
+    union_types: list[IRType] | None = None
     literal_value: Any | None = None
     nullable: bool = False
 
@@ -185,7 +178,7 @@ class Parameter:
     name: str
     python_name: str
     api_name: str
-    location: Literal["query", "header", "path", "cookie"]
+    location: Literal["query", "header", "path", "cookie", "body"]
     type: IRType
     description: str | None = None
     required: bool = False
@@ -414,4 +407,3 @@ class SDKProject:
     client: ClientConfig = field(default_factory=ClientConfig)
     resources: list[Resource] = field(default_factory=list)
     utilities: UtilityConfig = field(default_factory=UtilityConfig)
-

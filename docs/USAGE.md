@@ -342,4 +342,3 @@ To add support for a new language:
 4. Add tests
 
 See `ARCHITECTURE.md` for details.
-

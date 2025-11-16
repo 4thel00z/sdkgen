@@ -1,8 +1,11 @@
 """IR Builder - orchestrates parsing and building complete IR from OpenAPI spec."""
 
+import re
 from dataclasses import dataclass
 from dataclasses import field
 from typing import Any
+from typing import Literal
+from typing import cast
 
 from sdkgen.analyzers.endpoint_analyzer import EndpointAnalyzer
 from sdkgen.analyzers.namespace_analyzer import NamespaceAnalyzer
@@ -19,8 +22,10 @@ from sdkgen.core.ir import EnvVar
 from sdkgen.core.ir import FieldConversion
 from sdkgen.core.ir import IRType
 from sdkgen.core.ir import Model
+from sdkgen.core.ir import NestedResource
 from sdkgen.core.ir import Operation
 from sdkgen.core.ir import Parameter
+from sdkgen.core.ir import PathParam
 from sdkgen.core.ir import ProjectMetadata
 from sdkgen.core.ir import Property
 from sdkgen.core.ir import Resource
@@ -210,7 +215,9 @@ class IRBuilder:
     def build_enum(self, name: str, schema: dict[str, Any]) -> Enum:
         """Build an enum from schema."""
         enum_values = schema.get("enum", [])
-        base_type = "string" if isinstance(enum_values[0], str) else "integer"
+        base_type: Literal["string", "integer"] = (
+            "string" if isinstance(enum_values[0], str) else "integer"
+        )
 
         values: list[EnumValue] = []
         for value in enum_values:
@@ -311,7 +318,7 @@ class IRBuilder:
 
             # Detect nested resources
             nested_groups = self.nested_detector.detect_nested_resources(operations)
-            nested_resources: list[Resource] = []
+            nested_resources: list[NestedResource] = []
             nested_paths_methods = set()
 
             for nested_ops in nested_groups.values():
@@ -363,7 +370,10 @@ class IRBuilder:
     def build_operation(self, path: str, method: str, spec: dict[str, Any]) -> Operation:
         """Build an operation from OpenAPI operation spec."""
         operation_id = spec.get("operationId")
-        operation_name = self.endpoint_analyzer.infer_operation_name(method, path, operation_id)
+        responses = spec.get("responses", {})
+        operation_name = self.endpoint_analyzer.infer_operation_name(
+            method, path, operation_id, responses
+        )
 
         # Extract path parameters
         path_params = self.extract_path_params(path, spec.get("parameters", []))
@@ -389,7 +399,10 @@ class IRBuilder:
         return Operation(
             name=operation_name,
             operation_id=operation_id,
-            method=method,
+            method=cast(
+                "Literal['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']",
+                method.upper(),
+            ),
             path=path,
             path_params=path_params,
             query_params=query_params,
@@ -397,7 +410,9 @@ class IRBuilder:
             description=description,
             summary=spec.get("summary"),
             response_type=response_type,
-            return_format=return_format,
+            return_format=cast(
+                "Literal['json', 'binary', 'text', 'stream', 'multipart']", return_format
+            ),
             use_unpack_pattern=use_unpack,
             tags=spec.get("tags", []),
             deprecated=spec.get("deprecated", False),
@@ -406,10 +421,6 @@ class IRBuilder:
 
     def extract_path_params(self, path: str, parameters: list[dict[str, Any]]) -> list:
         """Extract path parameters from path template and parameter list."""
-        import re
-
-        from sdkgen.core.ir import PathParam
-
         # Find all {param} in path
         param_names = re.findall(r"\{([^}]+)\}", path)
 
@@ -603,8 +614,6 @@ class IRBuilder:
 
     def clean_html(self, text: str) -> str:
         """Remove HTML tags from text."""
-        import re
-
         if not text:
             return ""
 

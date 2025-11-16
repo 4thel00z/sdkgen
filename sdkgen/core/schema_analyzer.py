@@ -2,10 +2,10 @@
 
 from dataclasses import dataclass
 from typing import Any
+from typing import Literal
 
 from sdkgen.core.ir import Composition
 from sdkgen.core.ir import Discriminator
-from sdkgen.core.ir import Model
 
 
 @dataclass
@@ -34,7 +34,10 @@ class SchemaAnalyzer:
         return None
 
     def build_composition(
-        self, comp_type: str, schemas: list[dict[str, Any]], parent_schema: dict[str, Any]
+        self,
+        comp_type: Literal["allOf", "oneOf", "anyOf"],
+        schemas: list[dict[str, Any]],
+        parent_schema: dict[str, Any],
     ) -> Composition:
         """
         Build composition from schemas.
@@ -48,9 +51,11 @@ class SchemaAnalyzer:
             Composition object
         """
         # Extract discriminator if present
-        discriminator = None
-        if "discriminator" in parent_schema:
-            discriminator = self.extract_discriminator(parent_schema["discriminator"])
+        discriminator = (
+            self.extract_discriminator(parent_schema["discriminator"])
+            if "discriminator" in parent_schema
+            else None
+        )
 
         # Extract schema references
         schema_refs = []
@@ -63,11 +68,7 @@ class SchemaAnalyzer:
                 # Inline schema - would need to create anonymous model
                 schema_refs.append(schema)
 
-        return Composition(
-            type=comp_type,
-            schemas=schema_refs,
-            discriminator=discriminator,
-        )
+        return Composition(type=comp_type, schemas=schema_refs, discriminator=discriminator)
 
     def extract_discriminator(self, disc_schema: dict[str, Any]) -> Discriminator:
         """
@@ -94,11 +95,7 @@ class SchemaAnalyzer:
         Returns:
             Merged schema
         """
-        merged: dict[str, Any] = {
-            "type": "object",
-            "properties": {},
-            "required": [],
-        }
+        merged: dict[str, Any] = {"type": "object", "properties": {}, "required": []}
 
         for schema in schemas:
             # Merge properties
@@ -145,4 +142,3 @@ class SchemaAnalyzer:
             if comp_type in schema:
                 return comp_type
         return None
-
