@@ -30,10 +30,10 @@ jobs:
           uv tool install pytest
 
       - name: Run ruff format check
-        run: uv run ruff format --check .
+        run: ruff format --check .
 
       - name: Run ruff linter
-        run: uv run ruff check sdkgen/
+        run: ruff check sdkgen/
 
   typecheck:
     runs-on: ubuntu-latest
@@ -58,7 +58,7 @@ jobs:
           uv tool install pytest
 
       - name: Run mypy
-        run: uv run mypy sdkgen/
+        run: mypy sdkgen/
 
   test:
     runs-on: ubuntu-latest
@@ -86,7 +86,7 @@ jobs:
           uv tool install pytest
 
       - name: Run tests
-        run: uv run pytest tests/ -v
+        run: pytest tests/ -v
 
   test-sdk:
     runs-on: ubuntu-latest
