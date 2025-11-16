@@ -123,8 +123,7 @@ class PythonClientGenerator:
             "    @property",
             f"    def {ns.name}(self) -> {ns_class}:",
             f'        """Access {ns.name} API resources."""',
-            f'        ns_client = self.with_namespace("{ns.path_prefix}")',
-            f"        return {ns_class}(client=ns_client)",
+            f"        return {ns_class}(client=self)",
         ]
         return lines
 

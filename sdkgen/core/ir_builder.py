@@ -300,7 +300,7 @@ class IRBuilder:
         resources: list[Resource] = []
 
         for tag, operations in grouped.items():
-            resource_name = self.endpoint_analyzer.create_resource_name(tag)
+            resource_name = sanitize_class_name(tag)
 
             # Extract paths
             paths = [op[0] for op in operations]

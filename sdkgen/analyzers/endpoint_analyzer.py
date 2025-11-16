@@ -3,8 +3,6 @@
 from dataclasses import dataclass
 from typing import Any
 
-from sdkgen.utils.name_sanitizer import sanitize_class_name
-
 
 @dataclass
 class EndpointAnalyzer:
@@ -72,25 +70,6 @@ class EndpointAnalyzer:
             return resource_parts[0]
 
         return "default"
-
-    def create_resource_name(self, tag: str) -> str:
-        """
-        Create resource class name from tag.
-
-        Args:
-            tag: OpenAPI tag
-
-        Returns:
-            PascalCase resource name
-        """
-        # Clean and convert to PascalCase
-        name = sanitize_class_name(tag)
-
-        # Pluralize if not already
-        if not name.endswith("s") and not name.endswith("S"):
-            name = f"{name}s"
-
-        return name
 
     def detect_path_prefix(self, paths: list[str]) -> str | None:
         """
