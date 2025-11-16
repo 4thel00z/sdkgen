@@ -393,9 +393,9 @@ async def test_generated_sdk() -> tuple[int, int]:
 
         # 22. POST /api/v1/batch/users (batch create)
         try:
-            result = await client.v1.batch.create(items=[])
+            result = await client.v1.batch.create(users=[])
             assert "created" in result
-            print_test("POST /api/v1/batch/users → batch.create() [batch]", True)
+            print_test("POST /api/v1/batch/users → batch.create(users=[]) [batch]", True)
             passed += 1
         except Exception as e:
             print_test(f"POST /api/v1/batch/users → batch.create() - {e}", False)
@@ -403,9 +403,9 @@ async def test_generated_sdk() -> tuple[int, int]:
 
         # 23. DELETE /api/v1/batch/users (batch delete)
         try:
-            result = await client.v1.batch.delete(items=[])
+            result = await client.v1.batch.delete(user_ids=[])
             assert "deleted" in result
-            print_test("DELETE /api/v1/batch/users → batch.delete() [batch]", True)
+            print_test("DELETE /api/v1/batch/users → batch.delete(user_ids=[]) [batch]", True)
             passed += 1
         except Exception as e:
             print_test(f"DELETE /api/v1/batch/users → batch.delete() - {e}", False)
@@ -484,9 +484,9 @@ async def test_generated_sdk() -> tuple[int, int]:
             print_test(f"POST /api/beta/chat → chat.create() - {e}", False)
             failed += 1
 
-        # 30. POST /api/beta/embeddings (create) - SDK param is 'items'
+        # 30. POST /api/beta/embeddings (create) - SDK param is 'texts' from schema title
         try:
-            result = await client.beta.embeddings.create(items=["hello"], model_id="model-1")
+            result = await client.beta.embeddings.create(texts=["hello"], model_id="model-1")
             assert "embeddings" in result
             print_test("POST /api/beta/embeddings → embeddings.create()", True)
             passed += 1

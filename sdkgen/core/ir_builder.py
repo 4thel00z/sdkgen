@@ -532,7 +532,13 @@ class IRBuilder:
         # Case 2: Array type -> create single param with array type
         if schema.get("type") == "array":
             items_schema = schema.get("items", {})
-            param_name = self.infer_array_param_name(items_schema)
+
+            # Extract parameter name from schema title if available
+            array_title = schema.get("title")
+            if array_title:
+                param_name = to_snake_case(array_title)
+            else:
+                param_name = self.infer_array_param_name(items_schema)
 
             return [
                 Parameter(
@@ -596,7 +602,7 @@ class IRBuilder:
         if "multipart/form-data" in content:
             return "multipart"
         if "application/x-www-form-urlencoded" in content:
-            return "urlencoded"
+            return "multipart"  # Use multipart handling for form-data too
 
         return "json"
 

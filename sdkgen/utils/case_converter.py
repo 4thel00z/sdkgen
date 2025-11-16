@@ -13,11 +13,12 @@ def to_snake_case(text: str) -> str:
     Returns:
         snake_case version of the string
     """
+    # Replace spaces and hyphens first, then apply regex transformations
+    normalized = text.replace(" ", "_").replace("-", "_")
     # Insert underscore before uppercase letters
-    text = re.sub(r"([a-z\d])([A-Z])", r"\1_\2", text)
+    with_underscores = re.sub(r"([a-z\d])([A-Z])", r"\1_\2", normalized)
     # Handle consecutive uppercase letters (e.g., "HTTPResponse" -> "HTTP_Response")
-    text = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", text)
-    return text.lower()
+    return re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", with_underscores).lower()
 
 
 def to_camel_case(text: str) -> str:
