@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="logo.png" alt="SDKGen Logo" width="500" />
+<img src="https://raw.githubusercontent.com/mtahrioui/sdkgen/master/logo.png" alt="SDKGen Logo" width="500" />
 
 # SDKGen
 

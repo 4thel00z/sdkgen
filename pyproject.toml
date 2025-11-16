@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "sdkgen"
-version = "0.1.1"
+version = "0.1.2"
 description = "Multi-language SDK generator from OpenAPI specifications"
 readme = "README.md"
 requires-python = ">=3.12"
