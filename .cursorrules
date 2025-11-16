@@ -1,0 +1,27 @@
+# SDKGen Coding Guidelines
+
+## Architecture
+
+- Use hexagonal/DDD architecture
+- All infrastructure adapters must be dataclasses
+- No dependency injection singletons
+- Streamlined functional code over imperative
+
+## Python Style
+
+- No `__future__` imports
+- No `abc` package
+- Absolute imports only
+- Use pathlib (Path) for all file operations (never os.path)
+- No underscore prefixes for variables
+- TypedDict for data models
+- Dataclasses for services/adapters
+- Async-first with httpx
+
+## Code Quality
+
+- Target Python 3.12+
+- Type hints everywhere
+- snake_case for Python, camelCase for API
+- No useless wrappers
+
