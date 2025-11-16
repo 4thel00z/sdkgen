@@ -6,6 +6,7 @@ from tempfile import TemporaryDirectory
 import pytest
 
 from sdkgen.core.ir import ClientConfig
+from sdkgen.core.ir import IRType
 from sdkgen.core.ir import Model
 from sdkgen.core.ir import Namespace
 from sdkgen.core.ir import ProjectMetadata
@@ -36,7 +37,7 @@ def minimal_project():
                             name="id",
                             python_name="id",
                             api_name="id",
-                            type={"kind": "primitive", "primitive": "string"},
+                            type=IRType(kind="primitive", primitive="string"),
                             required=True,
                         )
                     ],

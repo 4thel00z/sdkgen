@@ -176,14 +176,14 @@ class TypeMapper:
         }
 
         if ir_type.kind == "primitive":
-            base = type_map.get(ir_type.primitive, "Any")
+            base = type_map.get(ir_type.primitive or "string", "Any")
         elif ir_type.kind == "array":
             item_hint = self.get_python_type_hint(ir_type.item_type) if ir_type.item_type else "Any"
             base = f"list[{item_hint}]"
         elif ir_type.kind == "model_ref":
-            base = ir_type.ref_name  # Don't quote - with __future__ annotations it's fine
+            base = ir_type.ref_name or "Any"  # Don't quote - with __future__ annotations it's fine
         elif ir_type.kind == "enum_ref":
-            base = ir_type.ref_name
+            base = ir_type.ref_name or "Any"
         elif ir_type.kind == "literal":
             # Literal values
             if isinstance(ir_type.literal_value, list):
