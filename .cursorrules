@@ -198,11 +198,12 @@ docs/              # Documentation
 After every plan implementation cycle:
 
 1. **Test All Changes**
-   - Run linter: `ruff check sdkgen/`
-   - Run type checker: `mypy sdkgen/`
-   - Generate test SDK: `uv run python -m sdkgen.cli generate -i test_api/openapi.json -o /tmp/test_sdk`
-   - Verify generated SDK compiles: `python -m py_compile /tmp/test_sdk/**/*.py`
-   - Run existing tests if available: `pytest tests/`
+   - Run all checks: `make check`
+   - Or individually:
+     - Linter: `make lint`
+     - Type checker: `make typecheck`
+     - SDK generation: `make test-sdk`
+     - Tests: `make test`
 
 2. **Commit Changes**
    - Stage all changes: `git add .`

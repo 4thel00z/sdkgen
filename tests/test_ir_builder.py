@@ -10,11 +10,7 @@ def simple_spec():
     """Simple OpenAPI spec for testing."""
     return {
         "openapi": "3.1.0",
-        "info": {
-            "title": "Test API",
-            "version": "1.0.0",
-            "description": "A test API",
-        },
+        "info": {"title": "Test API", "version": "1.0.0", "description": "A test API"},
         "servers": [{"url": "https://api.example.com"}],
         "paths": {
             "/users": {
@@ -29,10 +25,7 @@ def simple_spec():
             "schemas": {
                 "User": {
                     "type": "object",
-                    "properties": {
-                        "id": {"type": "string"},
-                        "name": {"type": "string"},
-                    },
+                    "properties": {"id": {"type": "string"}, "name": {"type": "string"}},
                     "required": ["id", "name"],
                 }
             }
@@ -72,4 +65,3 @@ def test_ir_builder_builds_resources(simple_spec):
     users_resource = next((r for r in project.resources if "user" in r.name.lower()), None)
     assert users_resource is not None
     assert len(users_resource.operations) > 0
-

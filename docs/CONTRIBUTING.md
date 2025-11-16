@@ -9,21 +9,29 @@
 
 ## Development Setup
 
+All commands are available via the Makefile:
+
 ```bash
+# See all available commands
+make help
+
 # Install with dev dependencies
-uv install
+make dev
 
 # Run tests
-pytest
+make test
 
 # Format code
-ruff format .
+make format
 
 # Lint
-ruff check sdkgen/
+make lint
 
 # Type check
-mypy sdkgen
+make typecheck
+
+# Run all quality checks
+make check
 ```
 
 ## Coding Guidelines

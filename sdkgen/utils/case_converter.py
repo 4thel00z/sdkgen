@@ -69,4 +69,3 @@ def detect_naming_convention(text: str) -> str:
         return "camelCase"
 
     return "unknown"
-

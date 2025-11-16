@@ -32,11 +32,11 @@ class PythonConvertersGenerator:
             or f"Convert {converter.input_type} (snake_case) to API format (camelCase)."
         )
 
-        # Build dict items on single lines matching pharia pattern
+        # Build dict items with conditional dict pattern
         dict_items = []
         for conv in converter.conversions:
             if conv.conditional_omit:
-                # Optional field - use pharia pattern: **({} if not value else {"key": value})
+                # Optional field - conditional pattern: **({} if not value else {"key": value})
                 value_expr = (
                     f'dict(data["{conv.from_name}"])'
                     if conv.nested_convert

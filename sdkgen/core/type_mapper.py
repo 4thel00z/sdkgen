@@ -203,4 +203,3 @@ class TypeMapper:
             base = "Any"
 
         return f"{base} | None" if ir_type.nullable else base
-

@@ -43,7 +43,7 @@ async def test_generated_code_is_valid_python():
             except SyntaxError as e:
                 errors.append(f"{py_file.name}: {e}")
 
-        assert not errors, f"Syntax errors found:\n" + "\n".join(errors)
+        assert not errors, "Syntax errors found:\n" + "\n".join(errors)
 
 
 @pytest.mark.asyncio
@@ -69,4 +69,3 @@ async def test_generated_code_imports_successfully():
         assert (output_dir / "test_sdk" / "client.py").exists()
         assert (output_dir / "test_sdk" / "models.py").exists()
         assert (output_dir / "test_sdk" / "utils.py").exists()
-

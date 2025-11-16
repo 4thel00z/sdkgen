@@ -1,0 +1,13 @@
+# act configuration for local GitHub Actions testing
+
+# Use medium size GitHub runner image
+-P ubuntu-latest=catthehacker/ubuntu:act-latest
+
+# Enable verbose output
+--verbose
+
+# Bind local filesystem
+--bind
+
+# Use host network for test API access
+--network host

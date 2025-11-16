@@ -291,27 +291,32 @@ python -m py_compile test_sdk/**/*.py
 
 ## Development Commands
 
+All development commands are available through the Makefile:
+
 ```bash
+# See all available commands
+make help
+
 # Install dependencies
-uv install
+make dev
 
 # Format code
-ruff format .
+make format
 
 # Lint
-ruff check sdkgen/
+make lint
 
 # Type check
-mypy sdkgen
+make typecheck
 
 # Run tests
-pytest
+make test
 
-# Generate SDK from test API
-uv run python -m sdkgen.cli generate \
-  -i http://127.0.0.1:8000/openapi.json \
-  -o /tmp/test_sdk \
-  -l python
+# Generate and verify SDK from test API
+make test-sdk
+
+# Run all quality checks
+make check
 ```
 
 ## Common Pitfalls to Avoid
@@ -506,25 +511,14 @@ After completing any plan implementation cycle, **always** follow this workflow:
 ### 1. Test All Changes
 
 ```bash
-# Lint
-ruff check sdkgen/
+# Run all quality checks
+make check
 
-# Type check
-mypy sdkgen/
-
-# Generate test SDK
-uv run python -m sdkgen.cli generate \
-  -i http://127.0.0.1:8000/openapi.json \
-  -o /tmp/test_sdk \
-  -l python
-
-# Verify generated code compiles
-cd /tmp/test_sdk
-python -m py_compile test_sdk/**/*.py
-
-# Run tests (if available)
-cd /path/to/sdkgen
-pytest tests/
+# Or run individually
+make lint
+make typecheck
+make test-sdk
+make test
 ```
 
 ### 2. Commit Changes

@@ -81,4 +81,3 @@ async def test_python_generator_creates_valid_package_structure(minimal_project)
         assert package_dir.is_dir()
         assert (package_dir / "resources").is_dir()
         assert (package_dir / "resources" / "__init__.py").exists()
-

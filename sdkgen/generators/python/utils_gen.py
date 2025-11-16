@@ -14,17 +14,19 @@ class PythonUtilsGenerator:
         Returns:
             Python source code
         """
-        return "\n".join([
-            '"""Utility functions for the SDK."""',
-            "",
-            "from typing import Any",
-            "",
-            "",
-            *self.generate_to_camel_case(),
-            "",
-            "",
-            *self.generate_convert_keys(),
-        ])
+        return "\n".join(
+            [
+                '"""Utility functions for the SDK."""',
+                "",
+                "from typing import Any",
+                "",
+                "",
+                *self.generate_to_camel_case(),
+                "",
+                "",
+                *self.generate_convert_keys(),
+            ]
+        )
 
     def generate_to_camel_case(self) -> list[str]:
         """Generate to_camel_case function."""
@@ -61,4 +63,3 @@ class PythonUtilsGenerator:
             "",
             "    return result",
         ]
-

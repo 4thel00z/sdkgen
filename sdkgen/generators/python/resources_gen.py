@@ -202,7 +202,7 @@ class PythonResourcesGenerator:
             items = ['"' + p.api_name + '": ' + p.python_name for p in required_params]
             return ["        params = {" + ", ".join(items) + "}"]
 
-        # Build pharia-style params dict with **({} if not x else {"key": x}) pattern
+        # Build conditional dict pattern: **({} if not x else {"key": x})
         dict_lines = ["        params = {"]
 
         # Add required params
@@ -210,7 +210,7 @@ class PythonResourcesGenerator:
             ['            "' + p.api_name + '": ' + p.python_name + "," for p in required_params]
         )
 
-        # Add optional params - pharia pattern: **({} if not value else {"key": value}),
+        # Add optional params - conditional pattern: **({} if not value else {"key": value}),
         dict_lines.extend(
             [
                 "            **({} if not "

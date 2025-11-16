@@ -28,9 +28,7 @@ class NamespaceAnalyzer:
             namespace = self.extract_namespace_from_path(path)
             if namespace and namespace not in namespaces:
                 namespaces[namespace] = Namespace(
-                    name=namespace,
-                    path_prefix=f"/{namespace}",
-                    resources=[],
+                    name=namespace, path_prefix=f"/{namespace}", resources=[]
                 )
 
         # If no namespaces detected, create default
@@ -42,9 +40,7 @@ class NamespaceAnalyzer:
                 namespace = self.extract_namespace_from_url(server_url)
                 if namespace:
                     namespaces[namespace] = Namespace(
-                        name=namespace,
-                        path_prefix=f"/{namespace}",
-                        resources=[],
+                        name=namespace, path_prefix=f"/{namespace}", resources=[]
                     )
 
         return list(namespaces.values())
@@ -105,9 +101,7 @@ class NamespaceAnalyzer:
 
         return None
 
-    def group_paths_by_namespace(
-        self, paths: dict[str, Any]
-    ) -> dict[str, list[str]]:
+    def group_paths_by_namespace(self, paths: dict[str, Any]) -> dict[str, list[str]]:
         """
         Group paths by their namespace.
 
@@ -126,4 +120,3 @@ class NamespaceAnalyzer:
             grouped[namespace].append(path)
 
         return grouped
-

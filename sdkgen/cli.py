@@ -20,30 +20,15 @@ def cli():
 
 @cli.command()
 @click.option(
-    "--input",
-    "-i",
-    "input_path",
-    required=True,
-    help="Path or URL to OpenAPI specification",
+    "--input", "-i", "input_path", required=True, help="Path or URL to OpenAPI specification"
 )
 @click.option(
-    "--output",
-    "-o",
-    "output_path",
-    required=True,
-    help="Output directory for generated SDK",
+    "--output", "-o", "output_path", required=True, help="Output directory for generated SDK"
 )
 @click.option(
-    "--language",
-    "-l",
-    default="python",
-    help="Target language (python, typescript, go, rust)",
+    "--language", "-l", default="python", help="Target language (python, typescript, go, rust)"
 )
-@click.option(
-    "--package-name",
-    "-n",
-    help="Package name (default: from OpenAPI title)",
-)
+@click.option("--package-name", "-n", help="Package name (default: from OpenAPI title)")
 def generate(input_path: str, output_path: str, language: str, package_name: str | None):
     """Generate SDK from OpenAPI specification."""
     asyncio.run(generate_async(input_path, output_path, language, package_name))
@@ -86,11 +71,7 @@ async def generate_async(
 
 @cli.command()
 @click.option(
-    "--input",
-    "-i",
-    "input_path",
-    required=True,
-    help="Path or URL to OpenAPI specification",
+    "--input", "-i", "input_path", required=True, help="Path or URL to OpenAPI specification"
 )
 def validate(input_path: str):
     """Validate an OpenAPI specification."""
@@ -123,18 +104,9 @@ async def validate_async(input_path: str):
 
 @cli.command()
 @click.option(
-    "--input",
-    "-i",
-    "input_path",
-    required=True,
-    help="Path or URL to OpenAPI specification",
+    "--input", "-i", "input_path", required=True, help="Path or URL to OpenAPI specification"
 )
-@click.option(
-    "--output",
-    "-o",
-    "output_path",
-    help="Output file for IR JSON (default: stdout)",
-)
+@click.option("--output", "-o", "output_path", help="Output file for IR JSON (default: stdout)")
 def show_ir(input_path: str, output_path: str | None):
     """Show intermediate representation (IR) of an OpenAPI spec."""
     asyncio.run(show_ir_async(input_path, output_path))
@@ -159,15 +131,21 @@ async def show_ir_async(input_path: str, output_path: str | None):
             "description": project.metadata.description,
             "base_url": project.metadata.base_url,
         },
-        "namespaces": [{"name": ns.name, "path_prefix": ns.path_prefix} for ns in project.namespaces],
+        "namespaces": [
+            {"name": ns.name, "path_prefix": ns.path_prefix} for ns in project.namespaces
+        ],
         "resources": [
             {
                 "name": r.name,
-                "operations": [{"name": op.name, "method": op.method, "path": op.path} for op in r.operations],
+                "operations": [
+                    {"name": op.name, "method": op.method, "path": op.path} for op in r.operations
+                ],
             }
             for r in project.resources
         ],
-        "models": [{"name": m.name, "properties_count": len(m.properties)} for m in project.types.models],
+        "models": [
+            {"name": m.name, "properties_count": len(m.properties)} for m in project.types.models
+        ],
         "enums": [{"name": e.name, "values_count": len(e.values)} for e in project.types.enums],
     }
 
@@ -187,4 +165,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

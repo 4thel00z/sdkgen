@@ -87,7 +87,7 @@ Generated SDK Code
 
 ## Generated SDK Style (Python)
 
-### Matches pharia_data_sdk:
+### Modern SDK Pattern:
 - Client as dataclass
 - Resources as dataclasses
 - TypedDict models (not Pydantic)
@@ -132,7 +132,7 @@ my_sdk/
 
 1. **Unit Tests**: Each analyzer/generator independently
 2. **Integration Tests**: Full OpenAPI → IR → Code
-3. **Validation Tests**: Compare generated SDK to reference (pharia_data_sdk)
+3. **Validation Tests**: Generate SDK from test API and verify compilation
 
 ## Dependencies
 

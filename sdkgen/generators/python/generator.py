@@ -97,9 +97,7 @@ class PythonGenerator:
         """Generate client.py file."""
         package_dir = self.output_dir / self.package_name
 
-        content = self.client_gen.generate(
-            project.client, project.namespaces, self.package_name
-        )
+        content = self.client_gen.generate(project.client, project.namespaces, self.package_name)
 
         self.write_file(package_dir / "client.py", content)
 
@@ -239,4 +237,3 @@ mypy {self.package_name}
         """
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content)
-

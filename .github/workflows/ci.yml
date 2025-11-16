@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv install
+
+      - name: Run ruff format check
+        run: ruff format --check .
+
+      - name: Run ruff linter
+        run: ruff check sdkgen/
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv install
+
+      - name: Run mypy
+        run: uv run mypy sdkgen/
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: uv install
+
+      - name: Run tests
+        run: uv run pytest tests/ -v
+
+  test-sdk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv install
+
+      - name: Start test API
+        run: |
+          cd test_api
+          uv run uvicorn main:app --host 127.0.0.1 --port 8000 &
+          sleep 3
+
+      - name: Generate SDK
+        run: |
+          curl -s http://127.0.0.1:8000/openapi.json > /tmp/test_openapi.json
+          uv run python -m sdkgen.cli generate -i /tmp/test_openapi.json -o /tmp/test_sdk -l python -n test_sdk
+
+      - name: Verify generated SDK
+        run: |
+          cd /tmp/test_sdk
+          python -m py_compile test_sdk/**/*.py
+          echo "✓ All generated files compile successfully"
