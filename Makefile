@@ -67,6 +67,10 @@ test-sdk: ## Generate SDK from test API and verify
 	@cd /tmp/test_sdk && python -c "import py_compile; from pathlib import Path; files = list(Path('test_sdk').rglob('*.py')); [py_compile.compile(str(f), doraise=True) for f in files]; print('✓ All files compiled successfully')"
 	@echo "$(GREEN)✓ SDK generation verified$(RESET)"
 
+test-e2e: ## Run end-to-end test (generate SDK + use it)
+	@echo "$(YELLOW)Running end-to-end test...$(RESET)"
+	@python e2e_test.py
+
 check: ## Run all quality checks (format, lint, typecheck, test, test-sdk)
 	@echo "$(BLUE)═══════════════════════════════════════════════════════════$(RESET)"
 	@echo "$(GREEN)  Running Full Quality Check$(RESET)"

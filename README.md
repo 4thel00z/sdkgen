@@ -193,6 +193,9 @@ sdkgen show-ir -i openapi.yaml
 # Generate and test
 sdkgen generate -i spec.yaml -o ./test-sdk
 cd test-sdk && python -m py_compile **/*.py
+
+# Run end-to-end test (starts API, generates SDK, tests it)
+make test-e2e
 ```
 
 ## 🔧 Development
