@@ -523,15 +523,46 @@ make test
 
 ### 2. Commit Changes
 
+Use **Conventional Commits** format:
+
 ```bash
 # Stage all changes
 git add .
 
-# Commit with descriptive message
+# Commit with conventional commit format
 git commit -m "feat: add guardian pattern and refactor nested conditionals"
+git commit -m "fix: resolve namespace URL doubling bug"
+git commit -m "docs: update AGENT.md with examples"
 
 # Push (when ready)
 git push origin branch-name
+```
+
+### Conventional Commit Format
+
+**Structure**: `<type>(<scope>): <description>`
+
+**Types:**
+- `feat:` - New feature (minor version bump)
+- `fix:` - Bug fix (patch version bump)
+- `docs:` - Documentation only
+- `style:` - Code style (formatting, no logic change)
+- `refactor:` - Code refactoring (no feature/bug change)
+- `perf:` - Performance improvement
+- `test:` - Adding/updating tests
+- `chore:` - Maintenance (deps, config, etc.)
+- `ci:` - CI/CD changes
+
+**Breaking Changes:** Add `!` after type or `BREAKING CHANGE:` in footer
+
+**Examples:**
+```
+feat: add support for TypeScript generation
+fix: resolve type errors in generated code
+feat!: remove forced pluralization (breaking change)
+docs: update README with new examples
+test: add comprehensive e2e tests
+chore: bump version to 0.2.0
 ```
 
 ### Key Principles
@@ -539,6 +570,7 @@ git push origin branch-name
 - **Never skip testing**: Always verify changes work before committing
 - **Test end-to-end**: Generate actual SDK and verify it compiles
 - **Atomic commits**: Each plan cycle = one focused commit
+- **Conventional commits**: Required for automated releases
 - **Clear messages**: Describe what changed and why
 
 ## Questions?

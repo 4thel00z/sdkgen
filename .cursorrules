@@ -205,9 +205,14 @@ After every plan implementation cycle:
      - SDK generation: `make test-sdk`
      - Tests: `make test`
 
-2. **Commit Changes**
+2. **Commit Changes with Conventional Commits**
    - Stage all changes: `git add .`
-   - Write descriptive commit message
+   - Use conventional commit format: `<type>: <description>`
+   - Types: feat, fix, docs, style, refactor, perf, test, chore, ci
+   - Examples:
+     - `feat: add new analyzer for nested resources`
+     - `fix: resolve namespace URL doubling bug`
+     - `docs: update README with usage examples`
    - Commit: `git commit -m "feat: description of changes"`
    - Never skip testing before committing
 
