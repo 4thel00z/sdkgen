@@ -553,7 +553,7 @@ async def get_user_v2(user_id: str):
 # ============================================================================
 
 
-@app.get("/api/beta/models", response_model=list[AIModel], tags=["ai-beta"])
+@app.get("/api/beta/models", response_model=list[AIModel], tags=["models"])
 async def list_ai_models_beta(
     provider: Literal["openai", "anthropic", "google"] | None = None,
     capability: str | None = None,
@@ -577,7 +577,7 @@ async def list_ai_models_beta(
     ]
 
 
-@app.post("/api/beta/chat", response_model=ChatResponse, tags=["ai-beta"])
+@app.post("/api/beta/chat", response_model=ChatResponse, tags=["chat"])
 async def chat_completion_beta(request: ChatRequest):
     """Generate chat completion."""
     return ChatResponse(
@@ -588,7 +588,7 @@ async def chat_completion_beta(request: ChatRequest):
     )
 
 
-@app.post("/api/beta/embeddings", tags=["ai-beta"])
+@app.post("/api/beta/embeddings", tags=["embeddings"])
 async def create_embeddings_beta(
     texts: list[str],
     model_id: str,
@@ -607,7 +607,7 @@ async def create_embeddings_beta(
 # ============================================================================
 
 
-@app.post("/api/beta/search", tags=["search-beta"])
+@app.post("/api/beta/search", tags=["search"])
 async def search_beta(
     query: str,
     filters: dict[str, str | int | bool] | None = None,

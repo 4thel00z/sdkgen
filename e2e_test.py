@@ -459,50 +459,49 @@ async def test_generated_sdk() -> tuple[int, int]:
             print_test(f"GET /api/v2/users/{{id}} → usersv2.get() - {e}", False)
             failed += 1
 
-        # ===== BETA AI (4 routes) =====
-        print(f"\n{YELLOW}>>> Beta AI{RESET}")
+        # ===== BETA ENDPOINTS (4 routes) =====
+        print(f"\n{YELLOW}>>> Beta Endpoints{RESET}")
 
-        # Note: Beta resources grouped by tags: ai-beta and search-beta
-        # 28. GET /api/beta/models (list - array) - in aibeta
+        # 28. GET /api/beta/models (list - array)
         try:
-            result = await client.beta.aibeta.list()
+            result = await client.beta.models.list()
             assert isinstance(result, list)
-            print_test("GET /api/beta/models → aibeta.list() [array]", True)
+            print_test("GET /api/beta/models → models.list() [array]", True)
             passed += 1
         except Exception as e:
-            print_test(f"GET /api/beta/models → aibeta.list() - {e}", False)
+            print_test(f"GET /api/beta/models → models.list() - {e}", False)
             failed += 1
 
-        # 29. POST /api/beta/chat (create) - in aibeta
+        # 29. POST /api/beta/chat (create)
         try:
-            result = await client.beta.aibeta.create(
+            result = await client.beta.chat.create(
                 model_id="model-1", messages=[{"role": "user", "content": "Hello"}]
             )
             assert result["id"]
-            print_test("POST /api/beta/chat → aibeta.create()", True)
+            print_test("POST /api/beta/chat → chat.create()", True)
             passed += 1
         except Exception as e:
-            print_test(f"POST /api/beta/chat → aibeta.create() - {e}", False)
+            print_test(f"POST /api/beta/chat → chat.create() - {e}", False)
             failed += 1
 
-        # 30. POST /api/beta/embeddings (create) - in aibeta - param is 'items' not 'texts'
+        # 30. POST /api/beta/embeddings (create) - SDK param is 'items'
         try:
-            result = await client.beta.aibeta.create(items=["hello"], model_id="model-1")
+            result = await client.beta.embeddings.create(items=["hello"], model_id="model-1")
             assert "embeddings" in result
-            print_test("POST /api/beta/embeddings → aibeta.create()", True)
+            print_test("POST /api/beta/embeddings → embeddings.create()", True)
             passed += 1
         except Exception as e:
-            print_test(f"POST /api/beta/embeddings → aibeta.create() - {e}", False)
+            print_test(f"POST /api/beta/embeddings → embeddings.create() - {e}", False)
             failed += 1
 
-        # 31. POST /api/beta/search (create) - in searchbeta
+        # 31. POST /api/beta/search (create)
         try:
-            result = await client.beta.searchbeta.create(query="test query")
+            result = await client.beta.search.create(query="test query")
             assert "results" in result
-            print_test("POST /api/beta/search → searchbeta.create()", True)
+            print_test("POST /api/beta/search → search.create()", True)
             passed += 1
         except Exception as e:
-            print_test(f"POST /api/beta/search → searchbeta.create() - {e}", False)
+            print_test(f"POST /api/beta/search → search.create() - {e}", False)
             failed += 1
 
         return passed, failed
