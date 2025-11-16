@@ -3,9 +3,6 @@
 from dataclasses import dataclass
 from typing import Any
 
-from sdkgen.core.ir import Operation
-from sdkgen.core.ir import Resource
-from sdkgen.utils.case_converter import to_pascal_case
 from sdkgen.utils.name_sanitizer import sanitize_class_name
 
 
@@ -13,7 +10,9 @@ from sdkgen.utils.name_sanitizer import sanitize_class_name
 class EndpointAnalyzer:
     """Analyzes endpoints and groups them into resources."""
 
-    def group_by_tags(self, spec: dict[str, Any]) -> dict[str, list[tuple[str, str, dict[str, Any]]]]:
+    def group_by_tags(
+        self, spec: dict[str, Any]
+    ) -> dict[str, list[tuple[str, str, dict[str, Any]]]]:
         """
         Group operations by tags.
 
@@ -63,9 +62,11 @@ class EndpointAnalyzer:
 
         # Filter out version/api prefixes and path parameters
         resource_parts = [
-            p for p in parts
+            p
+            for p in parts
             if not p.startswith("{")
-            and not p.startswith("v") or not p[1:].isdigit()
+            and not p.startswith("v")
+            or not p[1:].isdigit()
             and p not in ("api", "beta", "alpha")
         ]
 
@@ -174,28 +175,54 @@ class EndpointAnalyzer:
         Returns:
             Method name in snake_case
         """
-        # Check for sub-resource actions (e.g., /files/{id}/download)
+        # Extract path parts (excluding params)
         path_parts = [p for p in path.strip("/").split("/") if not p.startswith("{")]
-        
-        # If last part is an action, use it (e.g., "download", "activate", "cancel")
+
+        # Check for sub-resource actions (e.g., /files/{id}/download)
         if len(path_parts) > 1:
             last_part = path_parts[-1]
-            # Common action words
-            if last_part in {"download", "upload", "activate", "deactivate", "cancel", "approve", "reject", "publish", "archive"}:
+            action_words = {
+                "download",
+                "upload",
+                "activate",
+                "deactivate",
+                "cancel",
+                "approve",
+                "reject",
+                "publish",
+                "archive",
+                "summary",
+                "status",
+                "me",
+            }
+            if last_part in action_words:
                 return last_part.lower()
-        
+
         # Standard CRUD operations
         has_path_param = "{" in path
-        
+
         method_mapping = {
             ("GET", False): "list",
             ("GET", True): "get",
             ("POST", False): "create",
             ("POST", True): "create",
             ("PUT", True): "update",
+            ("PUT", False): "update",
             ("PATCH", True): "update",
+            ("PATCH", False): "update",
             ("DELETE", True): "delete",
+            ("DELETE", False): "delete",
         }
 
-        return method_mapping.get((method, has_path_param), method.lower())
+        standard_name = method_mapping.get((method, has_path_param))
 
+        # Use standard name unless it might conflict
+        # For single-purpose endpoints (health, status), use path-based name
+        if standard_name and standard_name in ("list", "get", "create", "update", "delete"):
+            return standard_name
+
+        # For utility endpoints without params, use last path part
+        if not has_path_param and len(path_parts) >= 1:
+            return path_parts[-1].lower()
+
+        return method.lower()

@@ -43,6 +43,7 @@ exclude = [
     "venv",
     "build",
     "dist",
+    "test_api",
 ]
 
 [tool.ruff.lint]
@@ -60,7 +61,9 @@ select = [
     "PTH",   # flake8-use-pathlib
     "RUF",   # Ruff-specific rules
     "TID",   # flake8-tidy-imports
+    "ERA",   # eradicate (commented-out code)
     "PL",    # pylint
+    "PERF",  # performance
 ]
 
 ignore = [
@@ -68,16 +71,24 @@ ignore = [
     "PLR0913", # too many arguments
     "PLR2004", # magic values
     "PLR0912", # too many branches
+    "PLR0915", # too many statements
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
-"**/tests/**/*" = ["PLR2004", "S101"]
+"**/tests/**/*" = ["PLR2004", "S101", "PLR0915"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["sdkgen"]
 force-single-line = true
 lines-after-imports = 2
+split-on-trailing-comma = false
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = true
+line-ending = "auto"
 
 [tool.mypy]
 python_version = "3.12"
@@ -89,4 +100,3 @@ ignore_missing_imports = true
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 asyncio_mode = "auto"
-

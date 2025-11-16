@@ -5,8 +5,8 @@ from dataclasses import field
 from typing import Any
 
 from sdkgen.analyzers.endpoint_analyzer import EndpointAnalyzer
-from sdkgen.analyzers.naming_analyzer import NamingAnalyzer
 from sdkgen.analyzers.namespace_analyzer import NamespaceAnalyzer
+from sdkgen.analyzers.naming_analyzer import NamingAnalyzer
 from sdkgen.analyzers.nested_detector import NestedDetector
 from sdkgen.core.ir import AuthConfig
 from sdkgen.core.ir import AuthScheme
@@ -30,7 +30,6 @@ from sdkgen.core.ir import UtilityConfig
 from sdkgen.core.ir import UtilityMethod
 from sdkgen.core.schema_analyzer import SchemaAnalyzer
 from sdkgen.core.type_mapper import TypeMapper
-from sdkgen.utils.case_converter import to_pascal_case
 from sdkgen.utils.case_converter import to_snake_case
 from sdkgen.utils.name_sanitizer import sanitize_class_name
 from sdkgen.utils.name_sanitizer import sanitize_enum_member_name
@@ -90,15 +89,14 @@ class IRBuilder:
             utilities=utilities,
         )
 
-    def build_metadata(self, spec: dict[str, Any], package_name: str | None = None) -> ProjectMetadata:
+    def build_metadata(
+        self, spec: dict[str, Any], package_name: str | None = None
+    ) -> ProjectMetadata:
         """Build project metadata from spec."""
         info = spec.get("info", {})
-        
+
         title = info.get("title", "SDK")
-        if package_name:
-            name = sanitize_package_name(package_name)
-        else:
-            name = sanitize_package_name(title)
+        name = sanitize_package_name(package_name) if package_name else sanitize_package_name(title)
 
         # Get base URL from servers
         servers = spec.get("servers", [])
@@ -128,7 +126,9 @@ class IRBuilder:
                 env_var_name=f"{name.upper()}_API_KEY"
                 if scheme_spec.get("type") == "apiKey"
                 else f"{name.upper()}_TOKEN",
-                header_name=scheme_spec.get("name") if scheme_spec.get("in") == "header" else "Authorization",
+                header_name=scheme_spec.get("name")
+                if scheme_spec.get("in") == "header"
+                else "Authorization",
             )
             schemes.append(scheme)
 
@@ -181,7 +181,9 @@ class IRBuilder:
             required=required,
             composition=composition,
             is_input=name.endswith("Input") or name.endswith("Request"),
-            is_output=name.endswith("Response") or name.endswith("Output") or not name.endswith("Input"),
+            is_output=name.endswith("Response")
+            or name.endswith("Output")
+            or not name.endswith("Input"),
         )
 
     def build_property(
@@ -257,11 +259,7 @@ class IRBuilder:
             ClientProperty(
                 name="timeout", type=IRType(kind="primitive", primitive="number"), default=600.0
             ),
-            ClientProperty(
-                name="headers",
-                type=IRType(kind="object"),
-                default={},
-            ),
+            ClientProperty(name="headers", type=IRType(kind="object"), default={}),
         ]
 
         # Utility methods
@@ -287,9 +285,7 @@ class IRBuilder:
             utility_methods=utility_methods,
         )
 
-    def build_resources(
-        self, spec: dict[str, Any], namespaces: list
-    ) -> list[Resource]:
+    def build_resources(self, spec: dict[str, Any], namespaces: list) -> list[Resource]:
         """Build resources from endpoints."""
         # Group operations by tags
         grouped = self.endpoint_analyzer.group_by_tags(spec)
@@ -315,10 +311,10 @@ class IRBuilder:
 
             # Detect nested resources
             nested_groups = self.nested_detector.detect_nested_resources(operations)
-            nested_resources = []
+            nested_resources: list[Resource] = []
             nested_paths_methods = set()
 
-            for nested_name, nested_ops in nested_groups.items():
+            for nested_ops in nested_groups.values():
                 if self.nested_detector.should_create_nested_resource(len(nested_ops)):
                     # Build nested resource operations
                     nested_operations = []
@@ -379,7 +375,7 @@ class IRBuilder:
         request_body_spec = spec.get("requestBody")
         body_params = self.extract_request_body_params(request_body_spec)
         return_format = self.determine_request_format(request_body_spec)
-        
+
         # Determine if should use unpack pattern (model ref in body)
         use_unpack = self.should_use_unpack(request_body_spec)
 
@@ -411,6 +407,7 @@ class IRBuilder:
     def extract_path_params(self, path: str, parameters: list[dict[str, Any]]) -> list:
         """Extract path parameters from path template and parameter list."""
         import re
+
         from sdkgen.core.ir import PathParam
 
         # Find all {param} in path
@@ -429,22 +426,20 @@ class IRBuilder:
     def extract_path_param_type(self, param_name: str, parameters: list[dict[str, Any]]) -> IRType:
         """Extract type for path parameter."""
         param_spec = next(
-            (p for p in parameters if p.get("in") == "path" and p.get("name") == param_name),
-            None,
+            (p for p in parameters if p.get("in") == "path" and p.get("name") == param_name), None
         )
-        
+
         if param_spec and "schema" in param_spec:
             return self.type_mapper.map_schema(param_spec["schema"])
-        
+
         # Default to string
         return IRType(kind="primitive", primitive="string")
 
-    def get_param_description(self, param_name: str, parameters: list[dict[str, Any]]) -> str | None:
+    def get_param_description(
+        self, param_name: str, parameters: list[dict[str, Any]]
+    ) -> str | None:
         """Get description for parameter."""
-        param_spec = next(
-            (p for p in parameters if p.get("name") == param_name),
-            None,
-        )
+        param_spec = next((p for p in parameters if p.get("name") == param_name), None)
         return param_spec.get("description") if param_spec else None
 
     def extract_query_params(self, parameters: list[dict[str, Any]]) -> list:
@@ -468,27 +463,37 @@ class IRBuilder:
         """Extract return type from responses."""
         # Try success responses in order
         for status in ["200", "201", "202"]:
-            if status not in responses:
+            response = responses.get(status)
+            if not response:
                 continue
 
-            response = responses[status]
             content = response.get("content", {})
 
             # Try JSON content
-            json_content = content.get("application/json", {})
-            if "schema" in json_content:
-                return self.type_mapper.map_schema(json_content["schema"])
+            json_schema = content.get("application/json", {}).get("schema")
+            if json_schema:
+                return self.type_mapper.map_schema(json_schema)
+
+            # Try other content types
+            for content_spec in content.values():
+                if "schema" in content_spec:
+                    return self.type_mapper.map_schema(content_spec["schema"])
 
         # Try default response
-        if "default" in responses:
-            content = responses["default"].get("content", {})
-            json_content = content.get("application/json", {})
-            if "schema" in json_content:
-                return self.type_mapper.map_schema(json_content["schema"])
+        default_response = responses.get("default")
+        if default_response:
+            content = default_response.get("content", {})
+            json_schema = content.get("application/json", {}).get("schema")
+            if json_schema:
+                return self.type_mapper.map_schema(json_schema)
 
-        # Check for 204 No Content
+        # 204 No Content
         if "204" in responses:
             return None
+
+        # Fallback: assume dict for 200/201 responses without explicit schema
+        if "200" in responses or "201" in responses:
+            return IRType(kind="object")
 
         return None
 
@@ -499,25 +504,37 @@ class IRBuilder:
 
         content = request_body.get("content", {})
 
-        # Try multipart/form-data first
-        schema = content.get("multipart/form-data", {}).get("schema")
-
-        # Then JSON
-        if not schema:
-            schema = content.get("application/json", {}).get("schema")
-
-        # Then form-urlencoded
-        if not schema:
-            schema = content.get("application/x-www-form-urlencoded", {}).get("schema")
+        # Try all content types
+        schema = (
+            content.get("application/json", {}).get("schema")
+            or content.get("multipart/form-data", {}).get("schema")
+            or content.get("application/x-www-form-urlencoded", {}).get("schema")
+        )
 
         if not schema:
             return []
 
-        # If schema is a model ref, handled by use_unpack_pattern
+        # Case 1: Model reference -> use Unpack pattern (handled elsewhere)
         if "$ref" in schema:
             return []
 
-        # Extract inline properties
+        # Case 2: Array type -> create single param with array type
+        if schema.get("type") == "array":
+            items_schema = schema.get("items", {})
+            param_name = self.infer_array_param_name(items_schema)
+
+            return [
+                Parameter(
+                    name=param_name,
+                    python_name=to_snake_case(param_name),
+                    api_name=param_name,
+                    location="body",
+                    type=IRType(kind="array", item_type=self.type_mapper.map_schema(items_schema)),
+                    required=True,
+                )
+            ]
+
+        # Case 3: Object with properties -> extract each property as param
         if schema.get("type") == "object" and "properties" in schema:
             properties = schema["properties"]
             required = schema.get("required", [])
@@ -536,6 +553,19 @@ class IRBuilder:
             ]
 
         return []
+
+    def infer_array_param_name(self, items_schema: dict[str, Any]) -> str:
+        """Infer parameter name for array body based on items type."""
+        if "$ref" in items_schema:
+            ref_name = items_schema["$ref"].split("/")[-1]
+            # CreateUserRequest -> users
+            base_name = ref_name.replace("Request", "").replace("Create", "").replace("Update", "")
+            return (
+                base_name.lower() + "s"
+                if not base_name.lower().endswith("s")
+                else base_name.lower()
+            )
+        return "items"
 
     def extract_property_type(self, prop_schema: dict[str, Any]) -> IRType:
         """Extract type for property, handling binary format."""
@@ -613,9 +643,5 @@ class IRBuilder:
             conversions.append(conversion)
 
         return Converter(
-            name=converter_name,
-            input_type=model.name,
-            output_type="dict",
-            conversions=conversions,
+            name=converter_name, input_type=model.name, output_type="dict", conversions=conversions
         )
-
