@@ -21,13 +21,13 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: uv install
+        run: uv sync
 
       - name: Run ruff format check
-        run: ruff format --check .
+        run: uv run ruff format --check .
 
       - name: Run ruff linter
-        run: ruff check sdkgen/
+        run: uv run ruff check sdkgen/
 
   typecheck:
     runs-on: ubuntu-latest
@@ -43,7 +43,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: uv install
+        run: uv sync
 
       - name: Run mypy
         run: uv run mypy sdkgen/
@@ -65,7 +65,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: uv install
+        run: uv sync
 
       - name: Run tests
         run: uv run pytest tests/ -v
@@ -84,7 +84,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: uv install
+        run: uv sync
 
       - name: Start test API
         run: |
