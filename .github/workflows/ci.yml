@@ -23,11 +23,8 @@ jobs:
       - name: Install dependencies
         run: uv sync
       
-      - name: Install tools
-        run: |
-          uv tool install ruff
-          uv tool install mypy
-          uv tool install pytest
+      - name: Install ruff
+        run: uv tool install ruff
 
       - name: Run ruff format check
         run: ruff format --check .
@@ -50,15 +47,9 @@ jobs:
 
       - name: Install dependencies
         run: uv sync
-      
-      - name: Install tools
-        run: |
-          uv tool install ruff
-          uv tool install mypy
-          uv tool install pytest
 
       - name: Run mypy
-        run: mypy sdkgen/
+        run: uv run mypy sdkgen/
 
   test:
     runs-on: ubuntu-latest
@@ -78,15 +69,9 @@ jobs:
 
       - name: Install dependencies
         run: uv sync
-      
-      - name: Install tools
-        run: |
-          uv tool install ruff
-          uv tool install mypy
-          uv tool install pytest
 
       - name: Run tests
-        run: pytest tests/ -v
+        run: uv run pytest tests/ -v
 
   test-sdk:
     runs-on: ubuntu-latest
