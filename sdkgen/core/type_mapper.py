@@ -7,17 +7,39 @@ from sdkgen.core.ir import ValidationRules
 
 
 class TypeMapper:
-    """Maps OpenAPI schema types to IR types."""
+    """Maps OpenAPI schema types to intermediate representation (IR) types.
+
+    Converts OpenAPI 3.x schema definitions to SDKGen's internal type
+    representation. Handles primitives, arrays, objects, unions, enums,
+    literals, and nullable types. Also extracts validation rules from schemas.
+
+    This mapper is stateless and all methods can be called independently.
+    """
 
     def map_schema(self, schema: dict[str, Any]) -> IRType:
-        """
-        Map an OpenAPI schema to an IR type.
+        """Map an OpenAPI schema to an IR type.
+
+        Analyzes the schema structure and converts it to the appropriate
+        IR type representation. Handles various schema patterns including
+        refs, unions (oneOf/anyOf), arrays, objects, enums, and primitives.
 
         Args:
-            schema: OpenAPI schema object
+            schema: OpenAPI schema object dictionary. Can contain type,
+                properties, items, oneOf, anyOf, $ref, enum, nullable, etc.
 
         Returns:
-            IR type representation
+            IRType object representing the schema's type structure.
+
+        Example:
+            >>> mapper = TypeMapper()
+            >>> schema = {"type": "string"}
+            >>> ir_type = mapper.map_schema(schema)
+            >>> print(ir_type.kind)
+            'primitive'
+            >>> schema = {"type": "array", "items": {"type": "integer"}}
+            >>> ir_type = mapper.map_schema(schema)
+            >>> print(ir_type.kind)
+            'array'
         """
         # Handle empty schema
         if not schema:
@@ -77,14 +99,24 @@ class TypeMapper:
         return IRType(kind="any", nullable=nullable)
 
     def extract_validation_rules(self, schema: dict[str, Any]) -> ValidationRules | None:
-        """
-        Extract validation rules from schema.
+        """Extract validation rules from an OpenAPI schema.
+
+        Extracts numeric constraints (min, max), string constraints
+        (minLength, maxLength, pattern, format) from the schema.
 
         Args:
-            schema: OpenAPI schema object
+            schema: OpenAPI schema object dictionary.
 
         Returns:
-            Validation rules or None
+            ValidationRules object if any validation constraints are found,
+            or None if schema has no validation rules.
+
+        Example:
+            >>> mapper = TypeMapper()
+            >>> schema = {"type": "string", "minLength": 1, "maxLength": 100}
+            >>> rules = mapper.extract_validation_rules(schema)
+            >>> print(rules.min_length)
+            1
         """
         rules: dict[str, Any] = {}
 
@@ -110,62 +142,94 @@ class TypeMapper:
         return ValidationRules(**rules)
 
     def is_enum(self, schema: dict[str, Any]) -> bool:
-        """
-        Check if schema represents an enum.
+        """Check if schema represents an enum.
 
         Args:
-            schema: OpenAPI schema
+            schema: OpenAPI schema object.
 
         Returns:
-            True if enum
+            True if schema has an "enum" field, False otherwise.
+
+        Example:
+            >>> mapper = TypeMapper()
+            >>> mapper.is_enum({"enum": ["red", "green", "blue"]})
+            True
         """
         return "enum" in schema
 
     def is_array(self, schema: dict[str, Any]) -> bool:
-        """
-        Check if schema represents an array.
+        """Check if schema represents an array type.
 
         Args:
-            schema: OpenAPI schema
+            schema: OpenAPI schema object.
 
         Returns:
-            True if array
+            True if schema type is "array", False otherwise.
+
+        Example:
+            >>> mapper = TypeMapper()
+            >>> mapper.is_array({"type": "array", "items": {"type": "string"}})
+            True
         """
         return schema.get("type") == "array"
 
     def is_object(self, schema: dict[str, Any]) -> bool:
-        """
-        Check if schema represents an object.
+        """Check if schema represents an object type.
 
         Args:
-            schema: OpenAPI schema
+            schema: OpenAPI schema object.
 
         Returns:
-            True if object
+            True if schema type is "object", False otherwise.
+
+        Example:
+            >>> mapper = TypeMapper()
+            >>> mapper.is_object({"type": "object", "properties": {}})
+            True
         """
         return schema.get("type") == "object"
 
     def is_primitive(self, schema: dict[str, Any]) -> bool:
-        """
-        Check if schema represents a primitive type.
+        """Check if schema represents a primitive type.
 
         Args:
-            schema: OpenAPI schema
+            schema: OpenAPI schema object.
 
         Returns:
-            True if primitive
+            True if schema type is string, integer, number, or boolean.
+            False otherwise.
+
+        Example:
+            >>> mapper = TypeMapper()
+            >>> mapper.is_primitive({"type": "string"})
+            True
+            >>> mapper.is_primitive({"type": "object"})
+            False
         """
         return schema.get("type") in ("string", "integer", "number", "boolean")
 
     def get_python_type_hint(self, ir_type: IRType) -> str:
-        """
-        Get Python type hint string from IR type.
+        """Get Python type hint string from IR type.
+
+        Converts an IR type representation to a Python type hint string
+        suitable for use in generated code. Uses modern Python 3.10+ syntax
+        with PEP 604 unions (| instead of Union).
 
         Args:
-            ir_type: IR type
+            ir_type: IR type object to convert.
 
         Returns:
-            Python type hint as string
+            Python type hint string. Examples: "str", "list[int]",
+            "dict[str, Any]", "Pet | None", "Literal['red', 'blue']".
+
+        Example:
+            >>> mapper = TypeMapper()
+            >>> ir_type = IRType(kind="primitive", primitive="string")
+            >>> mapper.get_python_type_hint(ir_type)
+            'str'
+            >>> ir_type = IRType(kind="primitive", primitive="string", nullable=True)
+            >>> mapper.get_python_type_hint(ir_type)
+            'str | None'
         """
         type_map = {
             "string": "str",
