@@ -9,19 +9,40 @@ from sdkgen.utils.case_converter import detect_naming_convention
 
 @dataclass
 class NamingAnalyzer:
-    """Analyzes naming conventions in OpenAPI specs."""
+    """Analyzes naming conventions in OpenAPI specifications.
+
+    Detects and analyzes naming patterns used in API schemas, parameters,
+    and responses. Helps determine the appropriate naming conventions for
+    generated SDK code based on the API's conventions. Supports snake_case,
+    camelCase, and original naming preservation.
+
+    This analyzer is stateless and all methods can be called independently.
+    """
 
     def detect_field_naming(
         self, schema: dict[str, Any]
     ) -> Literal["snake_case", "camelCase", "original"]:
-        """
-        Detect field naming convention from schema properties.
+        """Detect field naming convention from schema properties.
+
+        Samples up to 10 field names from the schema properties and analyzes
+        their naming conventions. Returns the dominant convention found.
 
         Args:
-            schema: OpenAPI schema object
+            schema: OpenAPI schema object with properties to analyze.
 
         Returns:
-            Detected naming convention
+            Detected naming convention: "snake_case" if most fields use
+            underscores, "camelCase" if most use camel case, or "original"
+            if no clear pattern is detected or schema has no properties.
+
+        Example:
+            >>> analyzer = NamingAnalyzer()
+            >>> schema = {"properties": {"first_name": {}, "last_name": {}}}
+            >>> analyzer.detect_field_naming(schema)
+            'snake_case'
+            >>> schema = {"properties": {"firstName": {}, "lastName": {}}}
+            >>> analyzer.detect_field_naming(schema)
+            'camelCase'
         """
         properties = schema.get("properties", {})
         if not properties:
@@ -49,14 +70,27 @@ class NamingAnalyzer:
     def detect_parameter_naming(
         self, parameters: list[dict[str, Any]]
     ) -> Literal["snake_case", "camelCase", "original"]:
-        """
-        Detect parameter naming convention.
+        """Detect parameter naming convention.
+
+        Samples up to 10 parameters and counts how many use snake_case
+        versus camelCase conventions. Returns the dominant pattern.
 
         Args:
-            parameters: List of OpenAPI parameters
+            parameters: List of OpenAPI parameter objects with "name" fields.
 
         Returns:
-            Detected naming convention
+            Detected naming convention: "snake_case" if most parameters use
+            underscores, "camelCase" if most use camel case, or "original"
+            if no parameters or no clear pattern.
+
+        Example:
+            >>> analyzer = NamingAnalyzer()
+            >>> params = [{"name": "user_id"}, {"name": "order_id"}]
+            >>> analyzer.detect_parameter_naming(params)
+            'snake_case'
+            >>> params = [{"name": "userId"}, {"name": "orderId"}]
+            >>> analyzer.detect_parameter_naming(params)
+            'camelCase'
         """
         if not parameters:
             return "original"
@@ -76,42 +110,75 @@ class NamingAnalyzer:
         return "original"
 
     def should_use_snake_case_for_input(self, spec: dict[str, Any]) -> bool:
-        """
-        Determine if input models should use snake_case.
+        """Determine if input models should use snake_case.
 
-        For Python SDKs, we always prefer snake_case for inputs (Pythonic).
+        For Python SDKs, this always returns True to follow Pythonic
+        conventions. Input parameters should use snake_case regardless
+        of the API's naming conventions for better Python code style.
 
         Args:
-            spec: OpenAPI specification
+            spec: OpenAPI specification (currently unused, but kept for
+                potential future use and API consistency).
 
         Returns:
-            True if input should use snake_case
+            Always returns True to enforce Pythonic snake_case for inputs.
+
+        Example:
+            >>> analyzer = NamingAnalyzer()
+            >>> analyzer.should_use_snake_case_for_input({})
+            True
         """
         return True
 
     def should_use_api_naming_for_output(
         self, schema: dict[str, Any]
     ) -> Literal["snake_case", "camelCase", "original"]:
-        """
-        Determine naming for output models (should match API).
+        """Determine naming convention for output models.
+
+        Output models should match the API's actual naming convention
+        to ensure proper serialization/deserialization. This delegates
+        to detect_field_naming to determine the API's convention.
 
         Args:
-            schema: OpenAPI schema
+            schema: OpenAPI schema object to analyze.
 
         Returns:
-            Naming convention for output models
+            Naming convention that matches the API: "snake_case",
+            "camelCase", or "original".
+
+        Example:
+            >>> analyzer = NamingAnalyzer()
+            >>> schema = {"properties": {"firstName": {}, "lastName": {}}}
+            >>> analyzer.should_use_api_naming_for_output(schema)
+            'camelCase'
         """
         return self.detect_field_naming(schema)
 
     def analyze_spec_examples(self, spec: dict[str, Any]) -> dict[str, Any]:
-        """
-        Analyze examples in spec to detect patterns.
+        """Analyze OpenAPI specification to detect naming patterns.
+
+        Performs comprehensive analysis of schemas and parameters throughout
+        the specification to determine the dominant naming conventions used
+        for requests, responses, and parameters.
 
         Args:
-            spec: OpenAPI specification
+            spec: Complete OpenAPI specification dictionary.
 
         Returns:
-            Analysis results
+            Dictionary with keys:
+            - "request_naming": Always "snake_case" (Pythonic convention)
+            - "response_naming": Detected from schemas ("snake_case", "camelCase", or "original")
+            - "parameter_naming": Detected from parameters ("snake_case", "camelCase", or "original")
+
+        Example:
+            >>> analyzer = NamingAnalyzer()
+            >>> spec = {
+            ...     "components": {"schemas": {"User": {"properties": {"firstName": {}}}}},
+            ...     "paths": {"/users": {"get": {"parameters": [{"name": "userId"}]}}}
+            ... }
+            >>> result = analyzer.analyze_spec_examples(spec)
+            >>> print(result)
+            {'request_naming': 'snake_case', 'response_naming': 'camelCase', 'parameter_naming': 'camelCase'}
         """
         results = {
             "request_naming": "snake_case",
