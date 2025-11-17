@@ -573,6 +573,84 @@ chore: bump version to 0.2.0
 - **Conventional commits**: Required for automated releases
 - **Clear messages**: Describe what changed and why
 
+## Release Process (Automated with Release-Please)
+
+### How Release-Please Works
+
+After you push conventional commits to master, release-please automatically:
+
+1. **Creates/Updates Release PR**
+   - Analyzes commits since last release
+   - Determines version bump (feat=minor, fix=patch, feat!=major)
+   - Updates version in pyproject.toml
+   - Generates CHANGELOG.md entries
+   - Creates PR titled "chore(master): release X.Y.Z"
+
+2. **When You Merge the Release PR**
+   - GitHub release is created automatically
+   - PyPI publish workflow triggers
+   - Package published to https://pypi.org/project/sdkgen/
+
+### Checking Release Status
+
+```bash
+# View open release PRs
+gh pr list
+
+# View release PR details
+gh pr view <number>
+
+# Check release-please workflow runs
+gh run list --workflow=release-please.yml
+```
+
+### Version Bumping Rules
+
+- `feat:` commits → **minor** version (0.2.0 → 0.3.0)
+- `fix:` commits → **patch** version (0.2.0 → 0.2.1)
+- `feat!:` or `BREAKING CHANGE:` → **major** version (0.2.0 → 1.0.0)
+- `docs:`, `test:`, `chore:`, etc. → No version bump (accumulate in next release)
+
+### Example Workflow
+
+```bash
+# Make changes
+git add .
+
+# Commit with conventional format
+git commit -m "feat: add TypeScript generator support"
+
+# Push to master
+git push origin master
+
+# Wait ~30 seconds for release-please to run
+# Check for release PR
+gh pr list
+
+# Review and merge release PR (manually or via gh)
+gh pr merge <number> --merge
+
+# Package automatically published to PyPI!
+```
+
+### Manual Release (if needed)
+
+If you need to create a release manually:
+
+```bash
+# Bump version in pyproject.toml
+# Update CHANGELOG.md
+# Commit
+git add pyproject.toml CHANGELOG.md
+git commit -m "chore: release v0.3.0"
+
+# Create tag
+git tag v0.3.0
+git push origin v0.3.0
+
+# This triggers publish workflow
+```
+
 ## Questions?
 
 - Check `docs/ARCHITECTURE.md` for architecture details

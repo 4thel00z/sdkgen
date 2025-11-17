@@ -214,7 +214,15 @@ After every plan implementation cycle:
      - `fix: resolve namespace URL doubling bug`
      - `docs: update README with usage examples`
    - Commit: `git commit -m "feat: description of changes"`
+   - Push: `git push origin master`
    - Never skip testing before committing
+
+3. **Release-Please Automation**
+   - Release-please monitors master branch for conventional commits
+   - Automatically creates release PR with version bump and changelog
+   - Version bumps: feat=minor, fix=patch, feat!=major
+   - Merge release PR to publish to PyPI automatically
+   - Check release PRs: `gh pr list`
 
 ## When in Doubt
 
