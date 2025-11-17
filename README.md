@@ -4,7 +4,7 @@
 
 # SDKGen
 
-### Multi-language SDK Generator from OpenAPI Specifications
+### OpenAPI SDK Generator
 
 _Type-safe • Async-first • Made for developers_
 
