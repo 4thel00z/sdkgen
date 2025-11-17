@@ -43,7 +43,23 @@ from sdkgen.utils.name_sanitizer import sanitize_package_name
 
 @dataclass
 class IRBuilder:
-    """Builds IR from parsed OpenAPI specification."""
+    """Builds intermediate representation (IR) from parsed OpenAPI specification.
+
+    Orchestrates the entire process of converting an OpenAPI 3.x specification
+    into SDKGen's internal IR format. Coordinates multiple analyzers to extract
+    metadata, types, resources, operations, and authentication configuration.
+
+    This class uses composition with specialized analyzers for different aspects
+    of the spec (endpoints, namespaces, naming, nested resources, schemas, types).
+
+    Attributes:
+        endpoint_analyzer: Analyzes endpoints and groups them into resources.
+        namespace_analyzer: Detects API versioning and namespace patterns.
+        naming_analyzer: Analyzes naming conventions in the API.
+        nested_detector: Detects nested resource patterns.
+        schema_analyzer: Analyzes schema compositions and patterns.
+        type_mapper: Maps OpenAPI types to IR types.
+    """
 
     endpoint_analyzer: EndpointAnalyzer = field(default_factory=EndpointAnalyzer)
     namespace_analyzer: NamespaceAnalyzer = field(default_factory=NamespaceAnalyzer)
@@ -53,15 +69,28 @@ class IRBuilder:
     type_mapper: TypeMapper = field(default_factory=TypeMapper)
 
     def build(self, spec: dict[str, Any], package_name: str | None = None) -> SDKProject:
-        """
-        Build complete IR from OpenAPI spec.
+        """Build complete IR from OpenAPI specification.
+
+        Main entry point that orchestrates the entire IR building process.
+        Extracts metadata, authentication, types, resources, and generates
+        a complete SDK project representation.
 
         Args:
-            spec: Parsed and resolved OpenAPI specification
-            package_name: Override package name (default: from spec title)
+            spec: Parsed and resolved OpenAPI 3.x specification dictionary.
+                All $ref references should be resolved before calling this.
+            package_name: Optional package name override. If None, derives
+                name from spec title. Defaults to None.
 
         Returns:
-            Complete SDK project IR
+            Complete SDKProject IR containing all metadata, types, resources,
+            operations, and configuration needed for SDK generation.
+
+        Example:
+            >>> builder = IRBuilder()
+            >>> spec = {"openapi": "3.0.0", "info": {"title": "My API", "version": "1.0"}, ...}
+            >>> project = builder.build(spec)
+            >>> print(project.metadata.name)
+            'my_api'
         """
         # Extract metadata
         metadata = self.build_metadata(spec, package_name)
@@ -97,7 +126,18 @@ class IRBuilder:
     def build_metadata(
         self, spec: dict[str, Any], package_name: str | None = None
     ) -> ProjectMetadata:
-        """Build project metadata from spec."""
+        """Build project metadata from OpenAPI specification.
+
+        Extracts title, version, description, license, author, and base URL
+        from the spec's info section and servers.
+
+        Args:
+            spec: OpenAPI specification dictionary.
+            package_name: Optional package name override. Defaults to None.
+
+        Returns:
+            ProjectMetadata with extracted information and sanitized package name.
+        """
         info = spec.get("info", {})
 
         title = info.get("title", "SDK")
@@ -117,7 +157,17 @@ class IRBuilder:
         )
 
     def build_auth_config(self, spec: dict[str, Any]) -> AuthConfig:
-        """Build authentication configuration."""
+        """Build authentication configuration from security schemes.
+
+        Extracts all security schemes from components/securitySchemes and
+        creates AuthConfig with scheme metadata and environment variable names.
+
+        Args:
+            spec: OpenAPI specification dictionary.
+
+        Returns:
+            AuthConfig with list of authentication schemes and default scheme.
+        """
         security_schemes = spec.get("components", {}).get("securitySchemes", {})
         schemes: list[AuthScheme] = []
 
@@ -143,7 +193,17 @@ class IRBuilder:
         return AuthConfig(schemes=schemes, default=default)
 
     def build_type_registry(self, spec: dict[str, Any]) -> TypeRegistry:
-        """Build type registry with all models and enums."""
+        """Build type registry with all models and enums.
+
+        Processes all schemas from components/schemas, classifying them
+        as either enums or models and building appropriate IR representations.
+
+        Args:
+            spec: OpenAPI specification dictionary.
+
+        Returns:
+            TypeRegistry containing lists of all models and enums.
+        """
         schemas = spec.get("components", {}).get("schemas", {})
 
         models: list[Model] = []
@@ -161,7 +221,18 @@ class IRBuilder:
         return TypeRegistry(models=models, enums=enums, type_aliases=[])
 
     def build_model(self, name: str, schema: dict[str, Any]) -> Model:
-        """Build a model from schema."""
+        """Build a Model IR from OpenAPI schema.
+
+        Extracts properties, required fields, and naming conventions to
+        create a complete Model representation.
+
+        Args:
+            name: Schema name from components/schemas.
+            schema: OpenAPI schema object dictionary.
+
+        Returns:
+            Model with properties, naming convention, and metadata.
+        """
         # Detect if input or output model
         # For now, use naming convention detection
         field_naming = self.naming_analyzer.detect_field_naming(schema)
@@ -194,7 +265,17 @@ class IRBuilder:
     def build_property(
         self, name: str, schema: dict[str, Any], field_naming: str, required: bool
     ) -> Property:
-        """Build a property from schema."""
+        """Build a Property IR from schema field.
+
+        Args:
+            name: Property name from schema.
+            schema: Property schema definition.
+            field_naming: Naming convention (snake_case, camelCase, original).
+            required: Whether property is required.
+
+        Returns:
+            Property with type mapping, validation rules, and naming info.
+        """
         python_name = to_snake_case(name)
         api_name = name  # Keep original for API
 
@@ -213,7 +294,15 @@ class IRBuilder:
         )
 
     def build_enum(self, name: str, schema: dict[str, Any]) -> Enum:
-        """Build an enum from schema."""
+        """Build an Enum IR from schema.
+
+        Args:
+            name: Enum name from components/schemas.
+            schema: Schema with enum values.
+
+        Returns:
+            Enum with sanitized member names and base type.
+        """
         enum_values = schema.get("enum", [])
         base_type: Literal["string", "integer"] = (
             "string" if isinstance(enum_values[0], str) else "integer"
@@ -232,7 +321,15 @@ class IRBuilder:
         )
 
     def build_client_config(self, spec: dict[str, Any], auth: AuthConfig) -> ClientConfig:
-        """Build client configuration."""
+        """Build client configuration with initialization parameters and properties.
+
+        Args:
+            spec: OpenAPI specification.
+            auth: Authentication configuration.
+
+        Returns:
+            ClientConfig with init parameters, properties, and environment variables.
+        """
         # Standard client parameters
         init_params = [
             Parameter(
@@ -293,7 +390,18 @@ class IRBuilder:
         )
 
     def build_resources(self, spec: dict[str, Any], namespaces: list) -> list[Resource]:
-        """Build resources from endpoints."""
+        """Build all resources from OpenAPI paths.
+
+        Groups endpoints by tags, detects nested resources, and builds
+        Resource objects with their operations.
+
+        Args:
+            spec: OpenAPI specification.
+            namespaces: List of detected namespaces.
+
+        Returns:
+            List of Resource objects with operations and nested resources.
+        """
         # Group operations by tags
         grouped = self.endpoint_analyzer.group_by_tags(spec)
 
