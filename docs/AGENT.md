@@ -651,10 +651,31 @@ git push origin v0.3.0
 # This triggers publish workflow
 ```
 
+## Session History
+
+**Always check the last 3 session files** for recent changes and context:
+
+```bash
+ls -lt docs/sessions/ | head -4
+```
+
+Session files contain:
+- What was accomplished
+- Bugs fixed
+- Commits made
+- Outstanding work
+- Lessons learned
+
+Location: `docs/sessions/YYYY-MM-DD_HH-MM-SS_description.md`
+
+---
+
 ## Questions?
 
 - Check `docs/ARCHITECTURE.md` for architecture details
 - Check `docs/USAGE.md` for usage examples
 - Check `docs/API.md` for API reference
 - Check tests for code examples
+- Check `docs/sessions/` for recent session history
+- Check `docs/plans/` for future work plans
 - Open a discussion on GitHub
